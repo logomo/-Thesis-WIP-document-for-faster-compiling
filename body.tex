@@ -130,13 +130,13 @@ Overall concepts of probabilistic sets have been given by Hirota in \cite{hirota
 
 
 
-\section{(W) Navigation Algorithms}\label{s:NavigationAlgorithms}
+\section{(R) Navigation Algorithms}\label{s:NavigationAlgorithms}
 \paragraph{Idea:} The basic idea is to provide hierarchical\emph{navigation frame} with \emph{some optimal path search capabilities}. 
 
 \paragraph{Standard Navigation:} The standard navigation is given as \emph{expected cost optimization problem} for \emph{future cost function} (eq. \ref{eq:costFunctionReachable}). The key concept of navigation algorithm was fully taken from \cite{gardi2018multi}. The \emph{descent} for landing is out of scope in this work, can be found in \cite{lim2018energy}. The navigation principle is roughly described in (sec. \ref{s:missionControlRun}).
 
 
-\paragraph{Maze Solving Capabilities:} The \emph{maze solving capability} is usable in \emph{controlled airspace} where 2D maze solving algorithms are applicable. The notable implementation was for \emph{micro mouse robot} based on right hand rule \cite{}
+\paragraph{Maze Solving Capabilities:} The \emph{maze solving capability} is usable in \emph{controlled airspace} where 2D maze solving algorithms are applicable. The notable implementation was for \emph{micro mouse robot} based on right hand rule \cite{mishra2008maze}. Flood fill algorithm is partially usable for 3D environment \cite{elshamarka2012design}. The application of \emph{maze solving} was given in case study \cite{chatelais2014maze}.
 
 \paragraph{Hybrid Automaton Path Planning:} A hybrid automaton path planing based on $A*$ algorithm was given by Richards in \cite{richards2004hybrid}. The key idea was to use \emph{hybrid automaton} (eq. \ref{eq:hybridAutomaton}) as a reference generator. This idea was taken and formulated as \emph{Movement Automaton Predictor mode}. 
 
@@ -145,10 +145,19 @@ The similar idea where \emph{potential fields} were used as \emph{intruder model
 \paragraph{Mode Switch:} The \emph{Mode Switch Control} idea has been presented in \cite{ryan2005mode}. There were definition of behavioural switch between:
 \begin{enumerate}
     \item \emph{Navigation Mode} - navigation control and behaviour was used.
-    \item \emph{Task Specific Mode} - mode specific for taks, authors were using modes for search and rescue. 
+    \item \emph{Task Specific Mode} - mode specific for tasks, authors were using modes for search and rescue. 
 \end{enumerate}
 
 This concept will be reused, the \emph{Task specific mode} will be \emph{Emergency Avoidance Mode} in Our case. The triggering events and switch conditions will be defined in (sec. \ref{s:missionControlRun}).
+
+\paragraph{Used concepts:} The \emph{Following concepts} were used in navigation loop:
+\begin{enumerate}
+    \item \emph{Standard navigation} taken from \cite{gardi2018multi} minor implementation changes using offline optimization. The purpose of navigation loop is to bring us closest to the waypoint, if its reachable. Navigation example (sec. \ref{s:testRuleMixed}).
+    
+    \item \emph{Maze solving capabilities} partially taken as secondary functionality based on \cite{elshamarka2012design}. The purpose is the \emph{looping prevention}. The example was given in (sec. \ref{s:testMaze}) .
+    
+    \item \emph{Mode switch} partially taken as main feature from \cite{ryan2005mode}, the triggering events were identified and defined by author and can be found over (chapter \ref{ch:approach}).
+\end{enumerate}
 
 
 \section{(R) Reach Set Estimation}\label{s:ReachSetEstimationTheory}
@@ -211,11 +220,79 @@ The \emph{Constraints} of obstacle set in \emph{Known world} (sec. \ref{s:KnownW
 
 \section{(W) Testing Framework}\label{s:TestingFrameworkTheory}
 
+\paragraph{Idea:} \emph{Reuse LSTS toolchain architecture} for DAA testing framework.
+
+\paragraph{LSTS Toolchain:} Software architecture used in modern unmanned aerial vehicles must be system independent and scalable. Writing own control software for unmanned aerial vehicle and ground station is unthinkable in current state of art.  Most notable framework for unmanned aerial vehicle development is LSTS tool chain from University of Porto \cite{merani2011underwater}. This tool chain is widespread in other universities and multiple independent applications are based on it \cite{rajan2013towards}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{\FIGDIR/TE036LSTSDeployment}
+    \caption{Example of LSTS toolchain deployment in real environment \cite{pinto2006neptus}}
+    \label{fig:lstsdeployment}
+\end{figure}
+
+Example of software architecture implementation is shown in figure \ref{fig:lstsdeployment} LSTS HUB (cloud iconography) is collecting all important data from currently executing missions. Data are transferred via REST API (dotted blue lines) to HUB.  Commanded vehicles can be unmanned copters, planes, ships, submarines or floating sensors compounds. Each vehicle has installed DUNE which is responsible for vehicle command and ground control station communication. Deployment, range of command and status messages can vary. Ground station can be implemented on personal computer (any platform) in NEPTUS environment or mobile platform (Android OS) in ACCU environment. Ground station environments are customizable and open source. Layout of ground station can be customized to need of current mission via plugins or console configuration. Vehicles and ground stations are communicating via IMC protocol (orange dashed lines). Communication channel is platform independent.
+
+
+\textit{Glued} is a Debian-based open source operating system which was initially released in 2010.  Over the years it has become fairly widespread and been provided continuous updates.  Meanwhile, a notable development community has emerged, where advice and support can be received as more applications are investigated. Some of the merits of the operating system are its reliability and customizability. Operation system is developed for unmanned autonomous vehicles. It is widely used in air, sea and land vehicles. Customization allows the operating system to be tailored to the specific usage. For this purpose, this includes stripping off functionality which is not required, thus releasing resources to be focused on the essential tasks. Glued is the operating system favored by the Beaglebone development community, and thus there exist considerable amounts of helpful documentation for this set-up.
+
+\textit{DUNE: Unified Navigational Environment} is an on-board software solution for unmanned vehicles. Multiple applications already run on this software. Almost any extension can be added to this to this environment. The software solution provides means for interacting with the connected components as well as control, navigation, supervision and plan execution.  It is both CPU architecture independent and OS independent.  It is written in C++ and developed by LSTS: Underwater Systems and Technology Laboratory.
+
+\textit{Neptus} \cite{pinto2006neptus} is a command and control software operated from a ground station. It is designed to operate well together with Dune and was also developed by LSTS. Neptus provides tools for remotely monitoring UAVs and assigning plans and commands in real-time missions, supporting multiple connections dynamically. Furthermore, it provides possibilities for both simulating missions and reviewing previously performed operations. This is presented in a customizable interface equipped with map layers and control panels. It is written in Java and available for both Windows and Linux systems.
+
+The \textit{Inter-Module Communication} \cite{martins2009imc} (IMC) protocol was developed by LSTS to provide reliable communication between the systems.  The protocol is message-oriented, such that messages can be sent and received from a bus which connects independently run threads or systems.  Thus it functions as a method of communication between tasks internally in Dune, and can also be passed to and from other vehicles or computers running Dune or Neptus.  IMC is platform independent at multiple messages have been already developed and supported by both DUNE and Neptus (around 400 status/command messages).
+
+\textit{HUB} is communication hub for data dissemination and situation awareness. This module is responsible for complex mission execution, when cooperation of multiple pilots/vehicles is required. This module can be imagined as airport tower center, which is monitoring all flights in airport (operation site) area. This tool implements REST API for communication between various ground stations and operating vehicles.
+
 \paragraph{Movement Automaton Control} Marconi used \emph{hybrid automaton} with forced \emph{State Switch} via buffer \cite{marconi2009control}. The key concept is that \emph{Automata} state switch is forced as \emph{external source command}. Our \emph{Movement Automaton} implementation know only \emph{forced state switch} like in \cite{frazzoli2000trajectory}. 
 
-\section{(W) UTM Services}\label{s:utmServicesTheory}
-\paragraph{Trajectory performanc tracking:} TODO 4D Trajectory \cite{gardi20154} 
-\paragraph{Rule engine:}
+\paragraph{Used concepts:} Most of the architecture was re-used in our approach, the concept of \emph{Rule engine} (sec. \ref{sec:ruleEngine}) was introduced to cover missing \emph{UTM} related functionality.
+
+\section{(R) UTM Services}\label{s:utmServicesTheory}
+\paragraph{Idea:} Take the Airbus UTM concept \cite{airbusUTM2018blueprint} combine it with \emph{EUROCONTROL} concept \cite{andrewhately2018} to obtain legal framework. \emph{Provide conflict resolution functionality} for \emph{Controlled Airspace}:
+\begin{enumerate}
+    \item \emph{Collision Detection} - define minimal required functionality for collision detection.
+    \item \emph{Collision Resolution} - implement \emph{Rules of the Air} \cite{standard1986recommended}.
+\end{enumerate}
+
+The \emph{implementation} of \emph{UTM services} described in (sec. \ref{sec:UTM}) is given in (sec. \ref{sec:UASTrafficManagement}).
+
+\paragraph{UTM Operation Modes:} \emph{defined in } \cite{airbusUTM2018blueprint} are following:
+\begin{enumerate}
+    \item \emph{Free route} (fig. \ref{fig:UTMFreeRouteMode}) is when aircraft can fly any path, so long as their planned path is coordinated with and de-conflicted from the paths of other aircraft by a traffic manager and approved based on calculated risk. Free routing is being introduced worldwide, such as free route airspace. This allows commercial flights to freely plan their route through participating sectors during cruise. There is less freedom for an aircraft in this situation than in basic flight, since its request may be rejected.
+    
+    \item\emph{Corridors} (fig. \ref{fig:CorridorMode})  are defined volumes in space, useful for managing airspace in high demand or to manage traffic flow and separation. Coordination is necessary to ensure safety in this airspace. A corridor may take on many different shapes. Aircraft are often guided inside corridors using predetermined routes analogous to approach procedures used worldwide today.
+    
+    \item\emph{Fixed route} (fig. \ref{fig:fixedRoute}) are used to ensure safety when there is high traffic density or in any location where structure is required to ensure safe operations. This could include locations such as airports or warehouses. These routes could be constructed or modified dynamically based on calculated risk. The most restrictive version is a predetermined path, where the only variable is when an aircraft is at a specific point in the path.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE032FreeRoute}
+        \caption{Free route.}
+        \label{fig:UTMFreeRouteMode}
+    \end{subfigure}
+    \begin{subfigure}{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE034Corridors} 
+        \caption{Corridors.}
+        \label{fig:CorridorMode}
+    \end{subfigure}
+    \begin{subfigure}{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE035FixedRoute} 
+        \caption{Fixed route.}
+        \label{fig:fixedRoute}
+    \end{subfigure}
+    
+    \caption{\emph{Movement set primitives} for Lattice Based Movement Planning. \cite{ljungqvist2017lattice}. }
+    \label{fig:latticeMovementPrimitivesExample}
+\end{figure}
+
+\paragraph{Used Concepts:} The implementation of our UTM services  is focused on \emph{Free route mode} (fig. \ref{fig:UTMFreeRouteMode}). The \emph{Corridors} and \emph{Fixed routes} are just additional \emph{space/time constraints}.
+
 
 
 
