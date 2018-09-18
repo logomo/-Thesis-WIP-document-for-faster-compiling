@@ -131,12 +131,12 @@ Overall concepts of probabilistic sets have been given by Hirota in \cite{hirota
 
 
 \section{(W) Navigation Algorithms}\label{s:NavigationAlgorithms}
-\paragraph{Idea:} The basic idea is to provide hierarchical \emph{navigation frame}
+\paragraph{Idea:} The basic idea is to provide hierarchical\emph{navigation frame} with \emph{some optimal path search capabilities}. 
+
+\paragraph{Standard Navigation:} The standard navigation is given as \emph{expected cost optimization problem} for \emph{future cost function} (eq. \ref{eq:costFunctionReachable}). The key concept of navigation algorithm was fully taken from \cite{gardi2018multi}. The \emph{descent} for landing is out of scope in this work, can be found in \cite{lim2018energy}. The navigation principle is roughly described in (sec. \ref{s:missionControlRun}).
 
 
-\paragraph{Standard Navigation:}
-4D Descent \cite{lim2018energy}
-4D Navigation \cite{gardi2018multi}
+\paragraph{Maze Solving Capabilities:} The \emph{maze solving capability} is usable in \emph{controlled airspace} where 2D maze solving algorithms are applicable. The notable implementation was for \emph{micro mouse robot} based on right hand rule \cite{}
 
 \paragraph{Hybrid Automaton Path Planning:} A hybrid automaton path planing based on $A*$ algorithm was given by Richards in \cite{richards2004hybrid}. The key idea was to use \emph{hybrid automaton} (eq. \ref{eq:hybridAutomaton}) as a reference generator. This idea was taken and formulated as \emph{Movement Automaton Predictor mode}. 
 
