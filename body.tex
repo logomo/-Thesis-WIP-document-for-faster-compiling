@@ -1,223 +1,201 @@
 % For formatting purposes only 
 \setcounter{chapter}{6}
-\setcounter{section}{8}
+\setcounter{section}{7}
+\setcounter{subsection}{2}
 %\listofalgorithms - think about it ...
 %--------------
 %- COPY START -
 %--------------        
-\section{(R) Complements of Algebra}\label{sec:complementsOfAlgebra}
-
-\paragraph{Cartesian Space:} 3D Cartesian space defined by an X, Y, and Z axes (describing position based on horizontal placement, vertical placement, and depth respectively). The coordinates for any point within this space are shown as a vector $[x,y,z]$. \emph{Coordinate system} used this work is the right-handed system (thumbs points at positive direction of x-axis, index finger is pointing to positive direction of y-axis, the positive  of z axis given by remaining fingers).
-
-\paragraph{Base Works:}\emph{Euler} outlined \emph{universal rotation theorem} which was presented in \cite{euler1775formulae}. Rigid body dynamics and rotation matrices defined by Schaub \cite{schaub2003analytical}. 
-
-\paragraph{UAS Coordinate System:} \emph{Local Coordinate frame} is defined by UAS mass center as space center, $Z-$ in direction of gravitational force, $X+$ in direction of UAS heading. This local coordinate system is called Euler Normalized Unit-frame (ENU). 
-
-\paragraph{Rotation Matrices:} Following \emph{Rotation Matrices} are used to transform between two displaced coordinate systems. Roll angle rotation is defined around X-axis by matrix (eq. \ref{eq:rollTransformationMatrix}) on YZ-plane. Pitch angle  rotation matrix is defined around Y-axis by matrix (eq. \ref{eq:pitchTransformationMatrix}) on XZ-plane. Yaw angle rotation matrix is defined around Z axis by matrix (eq. \ref{eq:yawTranformationMatrix}) on XY-plane.
-
-\begin{equation}\label{eq:rollTransformationMatrix}
-    R_{YZ} = R_{roll} =
-    \begin{bmatrix}
-        1 & 0 & 0\\
-        0 & \cos(roll) & -\sin(roll)\\
-        0 & \sin(roll) & \cos(roll)
-    \end{bmatrix}
-\end{equation}
-\begin{equation}\label{eq:pitchTransformationMatrix}
-    R_{XZ} = R_{pitch} =
-    \begin{bmatrix}
-        \cos(pitch) & 0 & \sin(pitch)\\
-        0 & 1 & 0\\
-        -\sin(pitch) & 0 & \cos(pitch)
-    \end{bmatrix}
-\end{equation}
-\begin{equation}\label{eq:yawTranformationMatrix}
-    R_{XY} = R_{yaw} = 
-    \begin{bmatrix}
-        \cos(yaw) & -\sin(yaw) & 0 \\
-        \sin(yaw) & \cos(yaw) & 1 \\
-        0 & 0 & 1
-    \end{bmatrix}
-\end{equation}
-The full rotation matrix in X,Y,Z  is given by (eq. \ref{eq:xyzspaceRotationMatrix}).
-
-\begin{equation}\label{eq:xyzspaceRotationMatrix}  
-        R_{XYZ}  = R_{roll,pitch,yaw} =  R_{XY} * R_{XZ} * R_{YZ} = R_{yaw} * R_{pitch} *R_{roll}
-\end{equation}
+\newpage
+\subsection{(R) Avoidance Grid Run}\label{s:aviudabceGridRun}
+\paragraph{Main Goal:} The main goal of this section is to introduce the trajectory selection process, based on a \emph{situation assessment}, originating from \emph{Data Fusion Procedure} (sec. \ref{s:sensorFusion}). 
 
 \begin{note}
-    The rotation matrix $R_{XYZ}$ (eq. \ref{eq:xyzspaceRotationMatrix}) and its inverse $R_{XYZ}^{-1}$ which gives identity $R_{XYZ} \times R_{XYZ}^{-1} = I$ are used all over this work in transformation.
+    The \emph{rating calculation} is outlined in (sec. \ref{s:sensorFusion}). Low cost sensor fusion example usable to feed our data fusion procedure is given in \cite{sabatini2013low}. Semi-optimal concatenation trajectory search  like ours can be found in \cite{shaw1998using}.
 \end{note}
 
-\paragraph{Gimbal Lock Prevention:} To keep solution numerically stable and rotations numerically stable gimbal lock prevention is necessary \cite{kramer1977gyro}. Gimbal lock occurs when one of matrices (eq. \ref{eq:rollTransformationMatrix}, \ref{eq:pitchTransformationMatrix}, \ref{eq:yawTranformationMatrix}) is singular or final matrix for X,Y,Z rotation is singular (eq. \ref{eq:xyzspaceRotationMatrix}). Gimbal lock leads to loose of one or more degree of freedom, depending on rank and space dimension of singular matrix. To prevent gimbal lock it is necessary to introduce mechanism to check if rotation matrix is regular. For this purpose normative reset function is introduced:
-\begin{equation}
-    \left [ roll, pitch , yaw \right ]^T = f(t,roll^-,pitch^-,yaw^-), \quad \textnormal{norm}(R_{roll,pitch, yaw})=3
-\end{equation}
+\begin{figure}[H]
+\centering
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/CA001ObstacleDetection}
+        \caption{Obstacle detection.}
+        \label{fig:obstacleDetectionAvoidanceGrid}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/CA002UncertainityAssesment} 
+        \caption{Uncertainty assessment.}
+        \label{fig:uncertainityAssesmentAvoidanceGrid}
+    \end{subfigure}
+    \\
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/CA003SurveyOfVacantSpace} 
+        \caption{Trajectories reachibility evaluation.}
+        \label{fig:trajectoriesSafetyEvaluationAvoidanceGrid}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/CA004ReachableSpaceAssesment} 
+        \caption{Cell reachibility evaluation.}
+        \label{fig:reachibilityAssessmentAvoidanceGrid}
+    \end{subfigure}
+    \caption{Significant steps of \emph{Avoidance grid run} (inner loop).}
+    \label{fig:significantStepsofAvoidanceGridRun}
+\end{figure}
+
+\begin{note}
+    The \emph{Sensor Fusion Procedure} is solving all following steps (sec. \ref{s:sensorFusion}). The \emph{main purpose} of \emph{Avoidance Run} is finding best path under certain conditions.
+\end{note}
+
+\paragraph{Space Assessment Principle:} The \emph{Avoidance Grid} is fed trough \emph{Data Fusion} (sec. \ref{s:sensorFusion}). The process of \emph{ratings assessment} (tab. \ref{tab:defuzificationRatings}) is given in (fig. \ref{fig:significantStepsofAvoidanceGridRun}):
+\begin{enumerate}
+    \item \emph{Obstacle detection} (fig. \ref{fig:obstacleDetectionAvoidanceGrid}) - assessment of \emph{detected obstacles} (eq. \ref{eq:detectedObstacleRatingForCell}). The red (O) $cells$ have Detected obstacle set as \emph{true}. The other threats: \emph{map obstacles} (eq. \ref{eq:mapObstacleRatingForCell}), \emph{intruders} (eq. \ref{eq:intruderRatingForCell}), \emph{constraints} (eq. \ref{eq:constraintRatingForCell}) are false. The red (0) $cells$ are representing $Occupied(t_i)$ (eq. \ref{eq:ocuupiedDataFusion}) space in \emph{Avoidance Grid} at decision time $t_i$.
+    
+    \item \emph{Uncertainty assessment} (fig. \ref{fig:uncertainityAssesmentAvoidanceGrid}) - the uncertain cells are cells which status can not be \emph{assessed}. The \emph{Visibility} (eq. \ref{eq:visibilityForCell}) is low. The \emph{Uncertain} cells (yellow (U) mark) are equal to $Uncertain(t_i)$ (eq. \ref{eq:UncertainDataFusion}) in \emph{Avoidance Grid} in \emph{decision time} $t_i$. The $Constrained(t_i)$ (eq. \ref{eq:ocuupiedDataFusion}) space is equal to $\varnothing$ in this example.
+    
+    \item \emph{Trajectory reachibility evaluation} (fig. \ref{fig:trajectoriesSafetyEvaluationAvoidanceGrid}) - the \emph{Reach Set} given as \emph{Trajectory Set} (eq. \ref{eq:trajectoryTree}). is then projected trough \emph{Avoidance Grid} and pruned according to (def. \ref{def:PrunedReachSet}). \emph{Reachable Trajectories} (eq. \ref{eq:trajectoryReachibility}) are only those contained in $Free(t_i)$ space (eq. \ref{eq:freeDataFusion}). The \emph{Reachable Trajectories} are denoted as \emph{green lines}. The \emph{Unreachable} trajectory segments are denoted as \emph{red lines}. 
+    
+    \item \emph{Cell reachibility evaluation} (fig. \ref{fig:reachibilityAssessmentAvoidanceGrid}) - the evaluation of $cells$ reachibility is going according to (eq. \ref{eq:cellReachibility}). The \emph{Reachable cells} are those which \emph{contains} at least one \emph{Reachable Trajectory Segment}.
+\end{enumerate}
 
 
-\noindent Function resets yaw or roll angle to initial position to keep degree of rotation matrix. Simpler but not fault tolerant solution is to keep angles $roll,pitch,yaw \in \left (  -\pi,\pi\right ]$ range.
+
+\paragraph{Finding Best Path:} \footnote{Avoidance Run Function Implementation:\url{RuleEngine/MissionControl/MissionControl.m::findBestPath(avoidanceGrid)}} Each $cell_{i,j,k}$ in \emph{Avoidance Grid} at \emph{decision time} $t_i$ has assessed ratings according to \emph{data fusion procedure} (tab. \ref{tab:defuzificationRatings}). The following properties are know prior the \emph{trajectory} selection:
+\begin{enumerate}
+    \item \emph{Reachibility} for each  $cell_{i,j,k}$ (eq. \ref{eq:cellReachibility}).
+    \item \emph{Reachibility} for each  $Trajectory(\circ)$ (eq. \ref{eq:trajectoryReachibility}).
+    \item \emph{Free Space} as non empty set of $cells$ in \emph{Avoidance Grid} (eq. \ref{eq:freeDataFusion}), with \emph{Reachable Space} (eq. \ref{eq:ReachableDataFusion}).
+    \item \emph{Goal Waypoint} $\mathscr{WP}_G$ from \emph{Mission Control Run} (sec. \ref{s:missionControlRun}).
+\end{enumerate}
+
+The \emph{Algorithm} (alg. \ref{alg:ExpansionConstraintFunctionForACASLikeReachSet}) is based on \emph{shortest path} search. Navigation is trying to reach \emph{goal waypoint}, therefore it tries to shorter distance between \emph{trajectory final cell} and \emph{goal waypoint}. If there is \emph{reachable space} two situations can occur:
+\begin{enumerate}
+    \item \emph{Goal waypoint is inside the Avoidance Grid} - the \emph{avoidance cell} is cell$_{i,j,k}$ containing \emph{goal waypoint} if reachable. 
+    
+    \item \emph{Goal waypoint is outside the Avoidance Grid} - the \emph{avoidance cell} is closest cell considered as \emph{outer cell} to \emph{goal waypoint}.
+\end{enumerate}
+
+\begin{note}
+    \emph{Outer cell} is a cell$_{i,j,k}$ which has at least one \emph{wall} directly neighbouring with \emph{outer space} ($Universe - Known World (t_i)$). The \emph{outer cell} is selected to prevent navigation to the \emph{trap}.
+\end{note}
+
+The \emph{Avoidance Path} selection is simple lowest cost selection of \emph{Trajectory} $\in$ cell$_{i,j,k}$.
+\newpage
+
+\begin{algorithm}[H]
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\Input{Cell[]  reachable (eq. \ref{eq:ReachableDataFusion}), Waypoint goal, AvoidanceGrid($t_i$) grid}
+    
+\Output{Trajectory avoidancePath, Error message}
+    
+    \BlankLine
+    \# Initialization \& Reachibility test\;    
+    avoidancePath = $\varnothing$\;
+    \If{reachable ==  $\varnothing$}{        
+        message = "No path available, empty Reach Set"\;
+        \Return{[avoidancePath,message]}
+    }
+    avoidanceCell = GetRandomCell(reachable)\;
+    
+    \BlankLine
+    \# Look for for goal cell\;
+    \eIf{goal $\in$ grid}{
+        \BlankLine
+        \# Goal is inside Avoidance Grid, Check if reachable\;
+        avoidanceCell = grid.selectCellXYZ(goal)\;
+        \If{avoidanceCell.Reachable != true}{
+            message = "Waypoint not Reachable"\;
+            \Return{[avoidancePath,message]}
+        }
+    }{
+        \BlankLine
+        \# Goal is outside Avoidance Grid, look for closest reachable cell$_{i,j,k}$\;
+        minimalDistance = distance(avoidanceCell,goal)\;
+        \For{cell$_{i,j,k}$ $\in$ reachable}{
+            
+            \If{distance(cell$_{i,j,k}$,goal) $<$ minimalDistance}{
+                \If{isOuterCell(cell$_{i,j,k}$)}{
+                    minimalDistance = distance(cell$_{i,j,k}$,goal)\;
+                    avoidanceCell = cell$_{i,j,k}$\;
+                }
+            }
+        }
+    }
+    
+    \BlankLine
+    \# Reachable cell was found, Look for cheapest reachable trajectory\;
+    avoidancePath = GetRandomTrajectory(avoidanceCell)\;
+    \For{trajectory $\in$ avoidance Cell \&\& trajectory.Reachable == true}{
+        \If{trajectory.Cost $<$ avoidancePath.cost}{
+            avoidancePath = trajectory\;
+        }
+    }
+   
+    message = $\varnothing$\;
+    \Return{[avoidancePath,message]}
+    
+    \caption{Find best \emph{Path} in \emph{Avoidance Grid}}
+    \label{alg:ExpansionConstraintFunctionForACASLikeReachSet}    
+\end{algorithm}
+
+\newpage
+\paragraph{Space Assessment Example:} For better understanding there is following example of \emph{space assessment} and \emph{Best Path Selection}. 
 
 
-\paragraph{Polar coordinates:} A \emph{polar coordinate system} represents point in form of vector:
-\begin{equation*}
-    point_{polar}=[distance, horizontal Dislocation Angle, vertical Dislocation Angle]^T
-\end{equation*}
-which is ideal for representation of LiDAR scanned point, because usually total point distance and pair of dislocation angles are returned. Using most common LiDAR with horizontal rotation $horizontal^\circ$ and vertical mirror inclination $vertical^\circ$, one can define planar coordinate $point_{planar} = [distance_{x,y,z},horizontal^\circ,vertical^\circ]$ which is dual to Cartesian coordinate $point_{cartesian} = [x,y,z]$. If rotation angle  ranges are $horizontal^\circ,vertical^\circ\in(-\pi,\pi]$ transformation function is bijection.
+The \emph{UAS} (blue plane) is following \emph{mission plan} in open space. Then there is a detection of an \emph{collision situation} (fig. \ref{fig:exampleSituationAvoidanceRun}). The \emph{Obstacle} is detected in \emph{top-right} Avoidance Grid corner. 
 
-\paragraph{Planar $\to$ Cartesian:} Transformation from planar to Cartesian representation is defined by following series of functions (eq. \ref{eq:cpt01}, \ref{eq:cpt02},\ref{eq:cpt03}, \ref{eq:cpt04}).
+The \emph{LiDAR hits} are denoted as red filled circles. The \emph{Avoidance Grid} space is constrained by black dashed line. The \emph{Avoidance Grid} is separated into 5 layers going from top to \emph{bottom}. The \emph{Reach Set} is projected as a set of \emph{Trajectories} with colorization. 
 
-\begin{equation}\label{eq:cpt01}
-    distance_{xy} = \cos(horizontal^\circ)\times distance_{xyz}
-\end{equation}
-
-\begin{equation}\label{eq:cpt02}
-    z = \sin(hirizontal^\circ)\times distance_{xyz}
-\end{equation}
-
-\begin{equation}\label{eq:cpt03}
-    y = \sin(horizontal^\circ)\times distance_{xy}
-\end{equation}
-
-\begin{equation}\label{eq:cpt04}
-    x = \cos(vertical^\circ) \times distance_{xy}
-\end{equation}
-
-
-\paragraph{Cartesian $\to$ Planar:} Transformation from Cartesian to planar representation is defined by following series of functions (eq \ref{eq:cpt05}, \ref{eq:cpt06},\ref{eq:cpt07}, \ref{eq:cpt08}).
-
-\begin{equation}\label{eq:cpt05}
-    distance_{xyz} = \sqrt{x^2+y^2+z^2}    
-\end{equation}
-
-\begin{equation}\label{eq:cpt06}
-    distance_{xy} = \sqrt{x^2+y^2}    
-\end{equation}
-
-\begin{equation}\label{eq:cpt07}
-    horizontal^\circ = \arctan\left(\frac{y}{x}\right)
-\end{equation}
-
-\begin{equation}\label{eq:cpt08}
-    vertical^\circ =  \arctan \left( \frac{z}{d_{xy}}\right)
-\end{equation}
-
-\begin{definition}{Global Coordinate System (GCS) $\mathscr{X}_\mathscr{G}$}\label{def:globalCoordinateSystem}
-    takes as center $c_{\mathscr{G}0}$ well known point (for example center of geo-reference model in GNSS systems) every reference distance, plane or angle is calculated taking this center to mind.
-\end{definition}
-
-\begin{definition}{Local Coordinate System (LCS) $\mathscr{X}_\mathscr{L}$}\label{def:localCoordinateSystem}
-    takes as center $c_{\mathscr{L}0}$ frame of vehicle and can be changing position and orientation in global coordinate frame $\mathscr{X}_\mathscr{G}$.
-\end{definition}
-
-\begin{definition}{Global position of planar obstacle $o_i\in\mathscr{O}_{3D}$.}\label{def:globalObstaclePosition3D}
-    Let $o_i = [d_o, \theta_o, \varphi_o]^T$ be planar position of obstacle $o_i$ in local coordinate frame of vehicle with global Cartesian position $[x,_v,y_v,z_v]^T$ and normalized orientation angles $[roll_v,pitch_v,yaw_v]$.\\
-    Then Cartesian position of obstacle $oi$, $[x_o,y_o,z_o]^T$  in local coordinate frame is given by transformation functions $x_o$ (eq. \ref{eq:cpt04}), $y_o$ (eq. \ref{eq:cpt03}), $z_o$ (eq. \ref{eq:cpt02}).\\ 
-    Global  position of planar obstacle $oi$, $[x_g,y_g,z_g]^T$ is given by following equation:
-    \begin{equation}
-        \begin{bmatrix}
-            x_g\\y_g\\z_g
-        \end{bmatrix}
-        =
-        \left [
-            R_{XYZ}(roll_v,pitch_v,yaw_v)
-            \begin{bmatrix}
-                x_o\\y_o\\z_o
-            \end{bmatrix}
-            +
-            \begin{bmatrix}
-                x_v\\y_v\\z_v
-            \end{bmatrix}
-        \right ]
-    \end{equation}    
-\end{definition}
-
-\begin{definition}{Local position of global coordinate $[x_g,y_g,z_g]^T\in\R^3$.}\label{def:globalToLocal}
-    Let there be vehicle with global Cartesian position $[x,_v,y_v,z_v]^T$ and normalized orientation angles $[roll_v,$ $pitch_v,$ $yaw_v]$. in global coordinate frame $\mathscr{X}_\mathscr{X}$.\\
-    Then local Cartesian coordinate position $[x_l,y_l,z_l]^T$ of point $[x_g,y_g,z_g]^T$ is given by following equation:
-    \begin{equation}
-        \begin{bmatrix}
-            x_l\\y_l\\z_l
-        \end{bmatrix}
-        =
-        \left [
-            R_{XYZ}(-roll_v,-pitch_v,-yaw_v)
-            \left (
-            \begin{bmatrix}
-                x_g\\y_g\\z_g
-            \end{bmatrix}
-            -
-            \begin{bmatrix}
-                x_v\\y_v\\z_v
-            \end{bmatrix}
-            \right )
-        \right ]
-    \end{equation}
-    Local planar position is given as $[distance_l, horizontal_l^\circ,horizontal_l^\circ]$, where $distance_l$ is given by (eq. \ref{eq:cpt05}), $vertical_l^\circ$ is given by (eq. \ref{eq:cpt07}). $vertical_l^\circ$ is given by (eq. \ref{eq:cpt08}), where $[x_l,y_l,z_l]$ are used as local coordinates.
-\end{definition}
-
-\paragraph{Planar surface calculation:} The problem is to calculate intersected surface $dA$ of ball subsurface defined by radius $r$, horizontal span $\phi$ and vertical span $\theta$. From classical mechanics one can formulate problem as given by (fig. \ref{fig:80BallSpan}). The intersection plot is in (fig. \ref{fig:81BallSpan2}).
+\begin{figure}[H]
+\centering
+    \includegraphics[width=0.75\linewidth]{\FIGDIR/TE038AvoidanceRunExample}        
+    \caption{Example: The situation to be evaluated by \emph{Avoidance Run}.}
+    \label{fig:exampleSituationAvoidanceRun}
+\end{figure}
+\newpage
+\noindent\emph{Visibility Assessment:} The visibility assessment (fig. \ref{fig:exampleVisibilityEvaluation}) divides the \emph{Avoidance Grid} into two
+\begin{enumerate}
+    \item \emph{Visible space} (blue filled cells) is space \emph{trough} which \emph{LiDAR} rays roamed freely until they hit an \emph{Obstacle}.
+    
+    \item \emph{Uncertain space} (black filled cells) is space where no \emph{LiDAR ray} passed nor hit. Therefore its status is uncertain.
+\end{enumerate}
+ 
+ \begin{note}
+     The \emph{detected obstacle cells} are part of \emph{visible space}, because there is certainty about its containment.
+ \end{note}
+ 
+ The \emph{Reach Set} trajectories are colored based on their visibility, blue for \emph{uncertain} trajectories and \emph{green} for visible trajectories.
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[H]{0.3\textwidth}
-        \includegraphics[width=\textwidth]{\FIGDIR/80BallSpan.jpg}
-        \caption{Notation}
-        \label{fig:80BallSpan}
-    \end{subfigure}
-    \begin{subfigure}[H]{0.3\textwidth}
-        \includegraphics[width=\textwidth]{\FIGDIR/81BallSpan2.png}
-        \caption{Plot}
-        \label{fig:81BallSpan2}
-    \end{subfigure}
-    \caption{Planar surface calculation notation and plot}
-    \label{fig:BallSpanNOTPLOT}
+    \includegraphics[width=0.95\linewidth]{\FIGDIR/TE040Visibility}        
+    \caption{Example: The \emph{Visibility} evaluation by \emph{Avoidance Run}.}
+    \label{fig:exampleVisibilityEvaluation}
 \end{figure}
 
-\noindent One can use first fundamental form to determine the surface area element. Recall that this is the metric tensor, whose components are obtained by taking the inner product of two tangent vectors in planar space $g_{i,j}= X_i \cdot X_j$, for tangent vectors $X_i$, $X_j$. Following identification for the components of metric tensor will be used:
-\begin{equation}\label{eq:metricTensorIdentification}
-    g_{ij}=
-    \begin{bmatrix}
-        E&F\\
-        F&G
-    \end{bmatrix}
-\end{equation}
+\newpage
+\noindent\emph{Reachibility Assessment:} For Each trajectory the \emph{Reachibility} is assessed (fig. \ref{fig:exampleReachibilityEvaluation}). The \emph{Obstacle Space} and \emph{Uncertain Space} are rendering \emph{reachibility}, effectively separating \emph{trajectories} into two categories:
 
-\noindent Where $E=<X_u,X_u>$, $F=<X_u,X_v>$, and $G=<X_v,X_v>$. Lagrange`s identity can be used , which tells us that the squared area of a parallelogram in space is equal to the sum of the squares of its projections onto the Cartesian plane:
-\begin{equation}\label{eq:CartesianProjectionIdentity}
-    |X_u \times X_v|^2 = |X_u|^2|X_v|^2 - \left(X_u\cdot X_v\right)^2
-\end{equation}
+\begin{enumerate}
+    \item \emph{Unreachable Trajectories} (red lines) - there is at least one trajectory segment leading trough \emph{Obstacle} or \emph{Uncertain} space.
+    
+    \item \emph{Reachable Trajectories} (green lines) -  all trajectory segments are lying in \emph{Free} space.
+\end{enumerate}
 
-\noindent Given example is displayed in (fig. \ref{fig:81BallSpan2}). The area element is given as:
-\begin{equation}\label{eq:squareElementSurfaceDerivation}
-    \begin{aligned}
-    \text{d}A &= |X_u \times X_v| \quad\text{d}u\text{d}v \\
-    & = \sqrt{\left||X_u|^2|X_v|^2 - \left(X_u\cdot X_v\right)^2\right|}\quad \text{d}u\text{d}v\\ 
-    & = \sqrt{EG-F^2} \quad \text{d}u\text{d}v
-    \end{aligned}
-\end{equation}
+Cells in Avoidance grid are divided in similar matter, depending on count of \emph{reachable trajectories} passing trough them:
 
-\noindent We will find tangent vectors via the usual parametrization which give, $X(\phi,\theta)$ = $[r \cos\phi\sin\theta,$ $r\sin\phi\sin\theta,$ $r\cos\theta]$, so that tangent vectors are simply defined as:
-\begin{equation}\label{eq:tangentVectorsForPlanarSurface}
-    \begin{aligned}
-        X_\phi &= [-r\sin\phi\cos\theta,r\cos\phi\sin\theta,0]\\
-        X_\theta &=[-r\cos\phi\sin\theta,r\sin\phi\cos\theta,-r\sin\theta]
-    \end{aligned}
-\end{equation}
+\begin{enumerate}
+    \item \emph{Unreachable Cells} (red fill) - there is no trajectory trough \emph{free space} or the \emph{cell} is not in \emph{free space}.
+    
+    \item \emph{Reachable cells} (green fill) - there is at least one \emph{feasible trajectory} reaching \emph{free cell}.
+\end{enumerate}
 
-\noindent Computing the elements of the first fundamental form gives us:
-\begin{equation}
-    E = r^2\cos^2\theta,\quad F=0,\quad G=r^2
-\end{equation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{\FIGDIR/TE041Reachibility}        
+    \caption{Example: The \emph{Reachibility} evaluation by \emph{Avoidance Run}.}
+    \label{fig:exampleReachibilityEvaluation}
+\end{figure}
 
-\noindent Thus final difference is given as:
-\begin{equation}\label{eq:finalCellSquareNice}
-    \text{d}A=\sqrt{r^4\cos^2}\quad \text{d}\theta\text{d}\phi = r^2 \cos\theta\quad \text{d}\theta\text{d}\phi
-\end{equation}
-
-\begin{note} 
-    \emph{Planar Surface} is used in \emph{Detected Obstacle Rating Calculation} (sec. \ref{s:detectedObstacles}). The final formula used in \emph{surface integral calculation} in \emph{non-compact notation} is given as follow:
-
-    \begin{equation}\label{eq:finalCellSquare}
-        \text{d}A= r^2 \cos(horizontal^\circ)\quad \text{d}horizontal^\circ \text{d}vertical^\circ
-    \end{equation}
+\begin{note}
+    The \emph{best avoidance path} is selected form \emph{reachable outer cells} (green fill in fig. \ref{fig:exampleReachibilityEvaluation}), depending on \emph{goal waypoint} according to (alg. \ref{alg:ExpansionConstraintFunctionForACASLikeReachSet}).
 \end{note}
