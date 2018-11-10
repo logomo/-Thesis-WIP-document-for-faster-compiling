@@ -7,57 +7,296 @@
 %- COPY START -
 %--------------
 
-\section{(R) Static Obstacles and Constraints}\label{s:staticObstacles}
-    
-\paragraph{Introduction:} The \emph{static obstacles} were used in original concept \cite{alojzgomola2017}, the \emph{Avoidance Grid} and \emph{Movement Automaton} were repurposed to enable \emph{finite time deterministic} avoidance. An \emph{Constraint based path search} and \emph{obstacle modeling} is summarized in \cite{hentenryck2009constraint}.
+\paragraph{Detected Obstacle Rating:} The \emph{detected obstacle rating} defines UAS chances to encounter detected obstacle in avoidance grid $cell_{i,j,k}$. Final \emph{detected obstacle rating} is merged information (eq. \ref{eq:detectedObstacleRatingForCell}). The \emph{sensor field} can contain \emph{multiple} \emph{static obstacle sensors}.
 
-This section is handling basic problems of \emph{static obstacle} detection and its focused on following real-world fixed position threats:
+\paragraph{Detected Obstacle Rate for LiDAR sensor:},Lets have only one sensor set as homogeneous two axis rotary LiDAR. For one $cell_{i,j,k}$ there exists set of passing LiDAR beams:
+
+\begin{equation}
+    lidar Rays(cell_{i,j,k})=
+    \left\{
+        \begin{aligned}
+        \left[
+            \begin{gathered}
+                horizontal^\circ\in horizontal Offsets,\\
+                vertical^\circ\in vertical Offsets
+            \end{gathered}
+        \right]\in\R^2:&\\
+        horizontal^\circ\in cell_{i,j,k}.horizontal &Range,\\
+        vertical^\circ\in cell_{i,j,k}.vertical &Range\\
+        \end{aligned}
+    \right\}
+\end{equation}
+
+\noindent The pair $[\theta,\varphi]$ is in homogeneous offset system given by product of discrete set of horizontal angles offsets $\Theta$ and discrete set of vertical angles offsets $\Phi$. The set $\mathscr{L}(c_{i,j,k})$ is finite countable and nonempty for any $c_{i,j,k}$, otherwise definition of avoidance grid $\mathscr{A}(t_i)$ needs to be changed.
+
+The hit function $h:\mathscr{L}(c_{i,j,k})\times\R^n\to[0,\infty]$ returns a distance of single beam return for beam passing trough $[\theta,\varphi]\in\mathscr{L}(c_{i,j,k})$ angle offsets with vehicle state space $\vec{x}\in\R^n$. Then set of LiDAR hits $\mathscr{H}$ in cell $c_{i,j,k}$ at system state $\vec{x}$ is given as follow:
+\begin{equation}
+    lidar Hits(cell_{i,j,k})=\left\{
+        \begin{aligned}
+        \left[
+            \begin{gathered}
+                distance=lidarScan(),\\
+                horizontal^\circ\in horizontal Offsets,\\
+                vertical^\circ\in vertical Offsets
+            \end{gathered}
+        \right]\in\R^2:&\\
+        distance \in cell_{i,j,k}.distance &Range,\\
+        horizontal^\circ\in cell_{i,j,k}.horizontal &Range,\\
+        vertical^\circ\in cell_{i,j,k}.vertical &Range\\
+        \end{aligned}
+    \right\}
+\end{equation}
+
+\noindent Probability of obstacle in case of LiDAR detection $P_{O_L}$ is given as ratio between landed hits and possible hits:
+\begin{equation}
+    obstacle^{LiDAR}_{cell_{i,j,k}}=\frac{lidar Hits(cell_{i,j,k})}{lidar Rays(cell_{i,j,k})}
+\end{equation}
+
+
+\noindent Probability of vision hindrance $P_{V_H}$ is given as supplement to probability of obstacle:
+\begin{equation}\label{eq:probabilityOfVisibilityHindrance}
+    hindrance^{LiDAR}_{cell_{i,j,k}}=1-\frac{lidar Hits(cell_{i,j,k})}{lidar Rays(cell_{i,j,k})}
+\end{equation}
+
+\paragraph{Cell density function.}
+\noindent Let`s start with differential form of cell surface calculation eq. \ref{eq:finalCellSquare}. The target object have several hits in given cell Avoidance grid $\mathscr{A}$ cell $c_{i,j,k}$. Cell $c_i,j,k$ have following properties which are used in surface calculation:
 \begin{enumerate}
-    \item \emph{Static Obstacles} - detected by LiDAR sensor or fused from \emph{Obstacle Map} information source.
-    
-    \item \emph{Geo-fencing Areas} - defined by offline/online information source as permanent flight restriction zones. There is usually no physical obstacle. The space is considered as \emph{hard/soft constraint}.
-    
-    \item \emph{Long-term bad weather Areas} - the \emph{weather} is changing often (hour period), there are \emph{weather events}  which lasts for \emph{hours} or \emph{days}.
+    \item \textit{Horizontal span} ($\theta_s$, $\theta_e$) - defines range of horizontal scanner partition.
+    \item \textit{Vertical span} ($\varphi_s$, $\varphi_e$) - defines range of vertical scanner partition.
 \end{enumerate}
 
+\noindent By rewriting eq. \ref{eq:finalCellSquare}. and using $\theta$ as horizontal range parameter and $\varphi$ as inverted vertical range parameter following surface integral is proposed:
+\begin{multline}
+    Area(cell_{i,j,k}) =\\ \int_{horizontal_{start}^\circ}^{horizontal_{end}^\circ}\int_{vertical_{start}^\circ}^{vertical_{start}^\circ} radius^2 \cos(vertical^\circ) \quad \text{d} vertical^
+    \circ\text{d} horizontal^\circ
+\end{multline}
 
-\paragraph{Changing Scanning Density of LiDAR:} A LiDAR sensor is scanning in conic section given by $distance Range,horizontal Range,vertical Range$, where distance range is in interval $[0,maxDistance]$, horizontal offset range is in $[-pi,pi]$, and vertical offset range is in $[\varphi_s, \varphi_e]$.  
+\noindent Numerical stable integration exist for boundaries $\theta \ in [-\pi,\pi]$ $\varphi \in [0,\frac{pi}{2}]$ and is given by following equation:
 
-Let say that $\partial horizontal^\circ, \partial vertical^\circ$ is unitary angle offset in which one LiDAR send and return is executed. That means the \emph{LiDAR} ray is sent every $\partial horizontal^\circ, \partial vertical^\circ$ offset movement. The \emph{LiDAR} ray density is decreasing with \emph{distance offset}. The same amount of \emph{LiDAR} rays passes trough $cell_{i,j,k}$ in Avoidance Grid.
+\begin{multline}\label{eq:intersectionSurfaceForCell}
+    Area(radius,horizontal Range, vertical_{start}^\circ, vertical_{end}^\circ) =\dots\\ 
+    =\left\{
+    \begin{aligned}
+        vertical&_{start}^\circ <0, vertical_{end}^\circ \le 0 :\\ 
+            &radius^2(\sin |vertical_{start}^\circ| - \sin|vertical_{end}^\circ|)\times horizontal Range\\
+         vertical&_{start}^\circ <0, vertical_{end}^\circ > 0   :\\
+            & r^2(\sin |vertical_{start}^\circ| + \sin|vertical_{end}^\circ|)\times horizontal Range\\
+         vertical&_{start}^\circ \ge 0 vertical_{end}^\circ < 0 :\\
+            & r^2(\sin vertical_{end}^\circ- \sin vertical_{start}^\circ)\times horizontal Range)
+    \end{aligned}
+    \right.
+\end{multline}
+
+\noindent Intersection surface for cell $A_C$ is then given by eq. \ref{eq:intersectionSurfaceForCell}. Most of the LiDAR scanners have \textit{Points per rotation parameter [ppr]}. $P_S[p/2\pi]$Let`s  assume that scanning density is homogeneous. The covered area at distance $r$ for one LiDAR swipe $A_S$ is given by eq. \ref{eq:intersectionSurfaceForCell}. where $\theta_s=\pi$, $\theta_e=\pi$, for full swipe and $\varphi_s$, $\varphi_e$ set to maximal horizontal range. Then for object with frontal area surface $A_O$, the minimal hit count $P_O$ is given as:
+
+\begin{equation}
+    lidar Hit Area(cell_{i,j,k}) = \frac{lidar Hits(cell_{i,j,k})}{lidar Rays(cell_{i,j,k})} \times Area\left(\begin{gathered}radius,horizontal Range,\\ vertical_{start}^\circ, vertical_{end}^\circ\end{gathered}\right)
+\end{equation}
+\begin{equation}\label{eq:lidarHitFormula}
+    obstacle(LiDAR,cell_{i,j,k})=\min\left\{\frac{lidar Hit Area(cell_{i,j,k})}{UAS.lidar Threshold Area},1\right\}
+\end{equation}
+
+\noindent \textit{LiDAR hit formula} (\ref{eq:lidarHitFormula}) covers hit count for cell $c_{i,j,k}$ and object $O$ of any size $A$ and any detection distance $r$.
+
+\section{Visibility probability}\label{sec:visibilityProbability}
+\noindent For each cell $c_{i,j,k}$ and each sensor $s_k$ there exist hindrance of vision probability $P_{V_H}$, which defines how much vision is clouded in single cell. Example of hindrance calculation for LiDAR has been given by eq. \ref{eq:probabilityOfVisibilityHindrance}. Let us consider cell row $\mathscr{C}(j_{fix},k_{fix})$ with fixed horizontal index $j_fix$ and vertical index $k_{fix}$ is given as series of:
+
+\begin{equation}\label{eq:cellrowDefinition}
+    cellRow(j_{fix},k_{fix})= \left\{cell_{i,j,k}\in Avoidance Grid :\begin{aligned}&i\in\{1,..,layersCount\},\\&j=j_{fix}, k=k_{fix}\end{aligned}\right\}
+\end{equation}
+
+For each cell $c_{i,j,k}$ there exists a function which calculates final visibility hindrance probability $P_{V_F}(c_{i,j,k},\mathscr{S})$, where $\mathscr{S}$ is set of sensors providing hindrance rate. Then for ordered cell row $\mathscr{C}(j_{fix},k_{fix})=\left\{c_{1,j_{fix},k_{fix}}, c_{2,j_{fix},k_{fix}}, \dots,c_{a,j_{fix},k_{fix}}\right\}, a\in\N^+$ and for one selected cell $c_{i,j,k}$ the probability of visibility is given as supplement to hindrance from previous cells. The equation for this statement holds as follows:
+
+\begin{multline}\label{eq:FinalVisibilityProbability}
+    visibility(cell_{i_c,j_c,k_c})=\dots\\ \dots =1 - \sum_{index\in\N^+}^{index < i_c} hindrance(cell_{a,j_c,k_c}: cell_{a,j_c,k_c}\in cell Row(j_{c},k_{c})
+\end{multline}
+
+\noindent For example cell $c_{4,j_{fix},k_{fix}}$ is selected for visibility calculation $P_{V}(c_{4,j_{fix},k_{fix}})$, then cells $c_{1,j_{fix},k_{fix}}$, $c_{2,j_{fix},k_{fix}}$, and $c_{3,j_{fix},k_{fix}}$, are used as a base of calculation for visibility hindrance probability $P_{V_F}$.
+
+\noindent \emph{The maximum hindrance} for any cell row $|{C}(j_{fix},k_{fix})|=k\in \N^+$ with  boundary:
+\begin{equation}
+    0 \le \sum_{cell\in cell Row(j_{fix},k_{fix})} visibility(cell) \le 1
+\end{equation}
+
+\noindent For one cell row $\mathscr{C}(j_{fix},k_{fix})$, where count of layers is equal to 10, and layers have equal spacing. There is defined sensor field $\mathscr{S}=\left\{s_1\right\}$, where $s_1$ is LiDAR sensor. 
+
+During consequent LiDAR scans $s(t_0)$, $s(t_1)$, $s(t_2)$, and $s(t_3)$ the obstacle sets $\mathscr{O}_1(t_1)=\{o_1\}$, $\mathscr{O}_2(t_2)=\{o_1,o_2\}$, and $\mathscr{O}_3(t_3)=\{o_1,o_2,o_3\}$ are discovered. Assigned hindrance probabilities are like follow:
+\begin{enumerate}
+    
+    \item\emph{Time $t_0$} - there is no obstacle nor hindrance, all cells are free
+    \item\emph{Time $t_1$} (fig. \ref{fig:fistObstacleHindrance}) - $\mathscr{O}_1(t_1)=\{o_1\}$ was detected, the hindrance probability $P_{V_F}$ $(c_{3,j_{fix},k_{fix}})$ is equal to $0.25$. The visibility in cells $c_{4-10,j_{fix},k_{fix}}$ is 75 percent now. 
+    
+    \item\emph{Time $t_2$} (fig. \ref{fig:secondObstacleHindrance}) - $\mathscr{O}_2(t_2)=\{o_1,o_2\}$ was detected, the additional hindrance probability  $P_{V_F}(c_{5,j_{fix},k_{fix}})$ is $0.15$. The visibility in cells $c_{6-10,j_{fix},k_{fix}}$ is lowered by additional 15 percent and its set to 60 percent now.
+    
+    \item\emph{Time $t_3$} (fig. \ref{fig:thirdObstacleHindrance}) - $\mathscr{O}_3(t_3)=\{o_1,o_2,o_3\}$  was detected the additional hindrance probability  $P_{V_F}(c_{7,j_{fix},k_{fix}})$ is $0.20$. The visibility in cells $c_{8-10,j_{fix},k_{fix}}$ is lowered by additional 20 percent and its set to 40 percent now.
+\end{enumerate}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{\FIGDIR/TE051CountOfLiDARHits}
-    \caption{Different count of LiDAR hits with different distance from UAS.}
-    \label{fig:P01CountOfLiDARHits}
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE006VisibilityFirstObstacle} 
+        \caption{1\textsuperscript{st} hindrance.}
+        \label{fig:fistObstacleHindrance}
+    \end{subfigure}
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE007VisibilitySecondObstacle} 
+        \caption{2\textsuperscript{nd} hindrance.}
+        \label{fig:secondObstacleHindrance}
+    \end{subfigure}
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE008VisibilityThirdObstacle} 
+        \caption{3\textsuperscript{rd} hindrance.}
+        \label{fig:thirdObstacleHindrance}
+    \end{subfigure}
+    \caption{Obstacle hindrance impact on visibility in \emph{Avoidance Grid Slice}.}
+    \label{fig:hindranceImpactOnVisibility}
 \end{figure}
 
-\noindent The surface of area given by some distance d, and unitary offsets$\partial horizontal^\circ, \partial vertical^\circ$  is changing with $distance$. The minimal triggering area of object surface is not changing. This fact has an impact on count of the hits on object surface. 
 
-The example is given in (fig. \ref{fig:P01CountOfLiDARHits}) where we have two identical objects (red circle) in distances 5 and 10 meters. The closer object consumes 5 LiDAR beam hits and the farther object consumes only 3 LiDAR beam hits. The probability of obstacle encounter is remaining the same for closer and farther object. The \emph{detected obstacle rate} assessment should return the same  detected obstacle collision rate for objects with same scanned surface (with different LiDAR ray hit count).
+\section{Map obstacle probability}\label{sec:mapObstacleProbability}
+\paragraph{Idea:} Use \emph{stored LiDAR readings} from previous mission to build an compact obstacle map \cite{cernamaria2018}. Then use \emph{this map} as a additional information source.
 
-
-\paragraph{Map and Detected Obstacles Fusion:} The concept of \emph{offline/online obstacle map} is mandatory in modern obstacle avoidance systems and increases the safety of navigation/avoidance path. The \emph{older} concept was considering only LiDAR reading or \emph{real-time sensor readings} in general \cite{alojzgomola2017}. 
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.7\textwidth]{\FIGDIR/TE053OvershadowedMapobstacle}
-    \caption{Overshadowed map obstacle by detected obstacles.}
-    \label{fig:P02OvershadowedMapobstacle}
-\end{figure}
-
-The fusion of real time sensor readings and obstacle map (prior knowledge) is required. Data fusion of these two sources is strongly depending on visibility property, because there are three basic scenarios:
+\paragraph{Concept:} A \emph{map obstacle} state has very simple logic, there are three possible cases:
 
 \begin{enumerate}
-    \item \emph{Dual detection} - the obstacle is marked on the map and detected by sensory system at some point of the time (older concept works).
-    
-    \item \emph{Hindered vision} - the detected obstacles are hindering vision to map obstacle therefore map obstacle uncertainty arises (older concept fails). 
-    
-    \item \emph{False-positive map} - map obstacle occupied space is visible by sensory system, but negative detection is returned. Therefore the map is giving \emph{false-positive} information.
+    \item \emph{Undetected} - Map obstacle $O_M$ is charted on map (fig. \ref{fig:undetectedMapObstalce}), but is undetected by any sensor in sensor field, therefore the probability of map obstacle occurrence is equal to $0$.
+
+
+    \item \emph{Detected} Map obstacle $O_M$ is charted on map and detected by any sensor in sensor field (fig. \ref{fig:detectedMapObstacle}). The map obstacle rate is equal to detected obstacle rate, usually its equal to $1$.
+
+    \item \emph{Hindered} Map obstacle $O_M$ is hindered behind other detected obstacle $O_1$ (fig. \ref{fig:hinderedMapObstacle}). The detected obstacle $O_1$ is in $cell_{i,j,k}$ and is reducing visibility in follow up $cellRow_{i_f>i,j,k}$ by $60$ percent.
 \end{enumerate}
 
-\noindent The second case is given in fig. \ref{fig:P02OvershadowedMapobstacle}, where map obstacle (blue circle) is overshadowed by three scanned obstacles (red circle). The visible space is denoted by green fill, the invisible space is denoted by gray fill. 
+\begin{figure}[H]
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE009MapObstacleUndetected} 
+        \caption{Undetected.}
+        \label{fig:undetectedMapObstalce}
+    \end{subfigure}
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE010MapObstacleDetected} 
+        \caption{Detected.}
+        \label{fig:detectedMapObstacle}
+    \end{subfigure}
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=0.9\linewidth]{\FIGDIR/TE011MapObstacleHiden}
+        \caption{Hindered.}
+        \label{fig:hinderedMapObstacle}
+    \end{subfigure}
+    \caption{Map obstacle states after \emph{Data fusion}.}
+    \label{fig:mapObstacleStatesAfterDataFusion}
+\end{figure}
+
+\paragraph{Implementation:} The formulation of final map obstacle rate  $map(cell_{i,j,k})$ was outlined in previous examples. These examples are showing the \emph{desired behaviour} and its solved by \emph{data fusion} (sec. \ref{s:sensorFusion}).
+
+First we start with obstacle map definition. The obstacle map  (eq. \ref{eq:obstacleMap}) defines an map obstacle set of information vectors with position in global coordinate frame , orientation bounded to global coordinate reference frame, safety margin and additional parameters.
+\begin{equation}\label{eq:obstacleMap}
+    obstacle Map= 
+    \left\{
+    \begin{bmatrix}
+        position,\\
+        orientation,\\
+        safety Margin,\\
+        parameters
+    \end{bmatrix}
+    :
+    \begin{aligned}
+        & position \in  \R^3(GCF),\\
+        & orientation \in \R^3(GCF),\\
+        & safety Margin \in \R^+(m),\\
+        & parameters \in \{\dots\}
+    \end{aligned}
+    \right\}
+\end{equation}
 
 
+The \emph{Map Obstacle} concept is taken from my \emph{master student work} \cite{cernamaria2018}, implementing \emph{compact representation} of point-cloud obstacle map. Te example of \emph{cuboid obstacles} with \emph{safe zone} is given in (fig. \ref{fig:exampleExtractedMapObstacles}).
+    
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{\FIGDIR/TE054ExtractedMapObstaclesExample}
+    \caption{Example of Extracted Map Obstacle \cite{cernamaria2018}.}
+    \label{fig:exampleExtractedMapObstacles}
+\end{figure} 
 
+\noindent The space covered by any obstacle  is non-empty by definition. There are following types of map charted obstacles which are implemented in framework:
+
+\begin{enumerate}
+    \item\emph{Ball obstacle $parameters=\varnothing$} - simple ball with center at $position$, with offset safety margin.
+    
+    \item\emph{Line obstacle $parameters=[length]$} - simple line bounded by length $\in]0,\infty[$ with center at $position$ and given orientation with respect to main axis in global coordinate frame, with safety margin $<$ 0.
+    
+    \item\emph{Plane obstacle $parameters=[length,width]$} - bounded rectangle plane partition defined by length $\in]0,\infty[$, and width $w\in]0,\infty[$ with center at $\vec{p}$ and given orientation $\vec{o}$ with respect to main axis in global coordinate frame, with safety margin.
+    
+    \item\emph{Cuboid obstacle $parameters=[length,width,depth]$} - bounded cuboid space partition defined by length $\in]0,\infty[$, width $\in]0,\infty[$, and depth $d\in]0,\infty[$ with center at $position$ and rotated in orientation with respect to main axis in global coordinate frame, with safety margin.
+\end{enumerate}
+
+\noindent The \emph{map obstacles} are stored in clustered database. The \emph{selection criterion} is given in (eq. \ref{eq:mapObstacleSelectionCriterion}).
+
+\begin{equation}\label{eq:mapObstacleSelectionCriterion}
+    avoidance Grid.radius \ge distance(UAS.position,map Obstacle) - total Margin
+\end{equation}
+
+\noindent The \emph{total margin} is combination of \emph{safety margin} and \emph{body margin} (in case of line, plane, cuboid obstacle). The \emph{selection} was implemented as standard cluster select, selecting 26  surrounding clusters around UAS + own UAS cluster.
+
+The \emph{compact obstacle representation} is transformed into \emph homogeneous point-cloud representations:
+
+\begin{itemize}
+    \item[1.]\emph{Body Point-cloud} - representing obstacle body approximation by geometrical shape (eq. \ref{eq:mapBodyPointCloud}). This point cloud is considered as hard constraints.
+    
+    \begin{equation}\label{eq:mapBodyPointCloud}
+        body Point Cloud  =\{point\in\R^3(GCF): point \in map Obstacle Body\}
+    \end{equation}
+    
+    \item[2.]\emph{Safety Margin Point Cloud} - representing safety coating around mapped obstacle body approximation (eq. \ref{eq:mapMarginPointCloud}). This point cloud is considered as soft constraint.
+    \begin{equation}\label{eq:mapMarginPointCloud}
+        margin Point Cloud = \{point\in\R^3(GCF): point \in map Safety Margin\}
+    \end{equation}
+\end{itemize}
+
+\begin{note}
+    The \emph{safety margin point cloud} is hollow in relationship to an \emph{body point cloud}, therefore:
+    \begin{equation*}
+        body Point Cloud \cap margin Point Cloud  = \varnothing
+    \end{equation*}
+\end{note}
+
+\noindent The \emph{map obstacle} discretization to point cloud leads to problem how to calculate \emph{impact rate}. The \emph{theoretical impact rate} for \emph{obstacle} is given as:
+\begin{equation*}
+    impact Rate = \frac{volume(map Obstacle\cap cell_{i,j,k})}{volume(cell_{i,j,k})}\in [0,1]
+\end{equation*}
+
+\noindent The \emph{map obstacle related point clouds} (eq. \ref{eq:mapBodyPointCloud}, \ref{eq:mapMarginPointCloud}) are homogeneous \cite{cernamaria2018}. That means \emph{each point} in point clouds covers similar portion of object volume. There is \emph{threshold volume} (eq. \ref{eq:tresholdVolumeDefinition}) which represents minimal object volume to be considered as an \emph{obstacle}.
+
+\begin{equation}\label{eq:tresholdVolumeDefinition}
+    0< threshold Volume \le \frac{volume(point Cloud)}{|point Cloud|}
+\end{equation}
+
+\noindent The \emph{impact rate} of one point  when intersecting a $cell_{i,j,k}$ is given as count of \emph{threshold obstacle bodies} in \emph{point cloud covered mass} multiplied by inverted point count (eq. \ref{eq:pointImpactRateMap}).
+
+\begin{equation}\label{eq:pointImpactRateMap}
+    point. rate = \frac{point Cloud Volume}{threshold Volume}\times\frac{1}{|point Cloud|}
+\end{equation}
+
+\noindent The \emph{intersection set} between \emph{point cloud} and $cell_{i,j,k}$ is defined in (eq. \ref{eq:pointImpactRateMap}). The \emph{cell} intersection with points is defined in (eq. \ref{eq:boundedSpaceCell}).
+
+\begin{multline}\label{eq:pointcloudIntersectionMap}
+    intersection(map,cell_{i,j,k}) =\dots\\\dots \{points \in \R^3: (point\to Avoidance Grid Frame) \in cell_{i,j,k}\}
+\end{multline}
+
+\noindent The \emph{map obstacle rating} for $cell_{i,j,k}$ and obstacle for our \emph{information source} is defined in (eq. \ref{eq:mapcellratingourMap}).
+
+\begin{equation}\label{eq:mapcellratingourMap}
+    map(cell_{i,j,k},obstacle) =\max\left\{ \sum_{\forall point\in intersection(map,cell_{i,j,k})}  point.rate , 1\right\}
+\end{equation}
+
+\noindent The \emph{map obstacle rating} for $cell_{i,j,k}$ and \emph{our information source} is given as maximum of all possible cumulative ratings form each obstacle in \emph{active map obstacles} set (eq. \ref{eq:cumulativeMapCellRatingMap}).
+
+\begin{equation}\label{eq:cumulativeMapCellRatingMap}
+    map(cell_{i,j,k} = \max \left\{map(cell_{i,j,k},obstacle):\forall obstacle \in Active Map Obstacles\right\}
+\end{equation}
+
+\begin{note}
+    The \emph{body point clouds} (eq. \ref{eq:mapBodyPointCloud}) never intersects, because they are created for inclusive obstacles. The \emph{safety margin point clouds} (eq. \ref{eq:mapMarginPointCloud}) can intersects, because they represents protection zones around physical obstacles. Therefore the \emph{maximum obstacle rating} (eq. \ref{eq:cumulativeMapCellRatingMap}) needs to be selected.
+\end{note}
 
