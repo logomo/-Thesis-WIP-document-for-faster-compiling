@@ -6,176 +6,251 @@
 %--------------
 %- COPY START -
 %--------------
-\paragraph{Idea:} The \emph{constraints} (ex. weather, airspace) usually covers large portion of the \emph{operation airspace}. 
 
-Converting constraints into valued \emph{point-cloud} is not feasible, due the \emph{huge amount of created points} and low \emph{intersection rate}. The \emph{polygon intersection} or \emph{circular boundary of 2D polygon} is simple and effective solution \cite{ritter1990efficient,welzl1991smallest}. 
+\paragraph{Introduction:} This section strongly follows \cite{eurocontrol2018rpasatm}, which outlined the basic concept of operations for Remotely piloted Aerial Systems (RPAS)/Unmanned Autonomous Systems (UAS) Air Traffic Management (ATM) (later re-branded as UTM).
 
-The key idea is to create \emph{constraint barrels} around dangerous areas. Each \emph{constraint barrel} is defined by circle on \emph{horizontal plane} and \emph{vertical limit range}.
+The \emph{RPAS/UAS} integration into \emph{non segregated airspace} follows the general manned aviation procedure:
+\begin{itemize}
+    \item[$\to$] For selected type of Operations VLOS/BVLOS/VFR/IFR:
+    \begin{itemize}
+        \item[$\to$] For selected class of Air traffic (class 1. - class 7):
+        \begin{itemize}
+            \item[$\to$] For selected class of airspace (class A -  classs G):
+            \begin{itemize}
+                \item[$\to$] Deliver Operation Performance Standards ($\ge$ General Aviation)
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
 
-\paragraph{Representation:} The \emph{minimal representation} is based on (sec. \ref{sec:WellClear}, \ref{sec:WeatherImpact}) and geo-fencing principle. The \emph{horizontal-vertical separation} is ensured by \emph{projecting boundary} as 2D polygon oh horizontal plane and \emph{vertical boundary} (barrel height) as \emph{altitude limit}. 
+\noindent  The prototype of regulation for \emph{RPAS/UAS} standard from EASA can be found at \cite{easa2016rpasroperegul}. The section will continue with outline of important functionality.
 
-The \emph{static constraint} (eq. \ref{eq:staticConstraint}) is defined as structure vector including:
+\paragraph{Airspace Assessment:} The future \emph{UTM} must be capable of \emph{airspace} assessment. In manned aviation the \emph{airspace assessment} is normally triggered by either rise of traffic, environmental issues, capacity issues and safety concerns or adapting the design to meet forecasted demands.
+
+Presently RPAS/UAS operations have not triggered an airspace assessment s most areas are indicated as \emph{no RPAS/UAS zones}. The \emph{restricted areas} are already known on aviation maps (airport, nuclear power station, etc.). However, there are similarities with RPAS/UAS operations below 500 ft (AGL), that can trigger this requirement for an airspace assessment like, but not exclusive:
+
 \begin{enumerate}
-    \item \emph{Position} - the center position in global coordinates\emph{2D horizontal plane}.
+    \item \emph{Increase of operations density} - UAS taxi can lead to increase of traffic density in class C and F airspaces, the UAS delivery system can lead to inreased trafic density in F class airspace. 
     
-    \item \emph{Boundary} - the ordered set of boundary points forming edges in global coordinates\emph{2D horizontal plane}.
+    \item \emph{Introduction of BVLOS, autonomous VLOS/ELOS/BLOS operations} - current RPAS/ UAS operations are limited to VLOS which limits operation space. When this limitation is lifted new business cases will open, leading to \emph{increase} of RPAS/UAS traffic.
     
-    \item \emph{Altitude Range} - the \emph{barometric altitude} range $[altitude_{start},$ $altitude_{end}]$.
+    \item \emph{Safety Concerns} - there is not enough accidents or critical RPAS/UAS misuse cases, to increase safety concerns, especially G class airspace does not have many manned aviation parallels.
     
-    \item \emph{Safety Margin} - the \emph{protection zone} (soft constraint) around constraint body (hard constraints) in meters.
+    \item \emph{Environmental Aspect} - the RPAS/UAS is not constructed from clean and safe materials, any accident can lead to serious habitat damage (ex. gasoline in water reservoir).
 \end{enumerate}
 
-\begin{multline}\label{eq:staticConstraint}
-    constraint = \{position,boundary, altitude_{start},altitude_{end}, safety Margin\}
-\end{multline}
+\noindent The \emph{assessment} should develop a new type of airspace organization able to cater for the new demand of operations and ensure safety levels are met. The airspace assessment can take into considerations following aspects:
 
-\paragraph{Active constrain selection:} The \emph{active constraints} are constraints which are impacting \emph{UAS active avoidance range}. 
-
-The \emph{active constraints set} (eq. \ref{eq:activeConstraintSet}) is defined as set of \emph{constraints} from all \emph{reliable Information Sources} where the \emph{the distance} between UAS and constraint body (including safety margin) is lesser than the avoidance grid range. The \emph{horizontal altitude range} of avoidance grid musts also intersect with \emph{constraint altitude range}.
-
-\begin{multline}\label{eq:activeConstraintSet}
-    Active Constraints = \dots\\\dots =
-    \left\{\begin{aligned}constraint& \in Information Source:\\ 
-    &distance(constraint,UAS) \le Avoidance Grid. distance,\\
-    &constraint.altitude Range \cap UAS.altitude Range \neq \varnothing 
-    \end{aligned}\right\}
-\end{multline}
-
-\paragraph{Cell Intersection:} The \emph{importance of constraints} is on their impact on \emph{avoidance grid} $cells$. The \emph{most of the constraints} (weather, ATC) are represented as 2D convex polygons. Even the \emph{irregularly shaped constraints} are usually split into smaller convex 2D polygons.
-
-The idea is to represent convex polygon boundary as sufficiently large circle to cover polygon. The Welzl algorithm to find \emph{minimal polygon cover circle} \cite{welzl1991smallest} is used.
-
-First the \emph{set of contraint edges} (eq. \ref{eq:constraintEdgeSet}) is a enclosed set of 2D edges between neighboring points defined as follow:
-
-\begin{equation}\label{eq:constraintEdgeSet}
-    edges(constraint) =
-    \left\{
-    \begin{bmatrix}
-        point_{i},point_{j}
-    \end{bmatrix}:
-    \begin{aligned}
-    &point\in boundary,\\
-    &i \in \{1,\dots,|boundary|\},\\
-    &j \in \{2,\dots, |boundary|,1\}\\
-    \end{aligned}
-    \right\}
-\end{equation}
-
-\noindent The \emph{constraint circle boundary} with calculated center on 2D horizontal plane and radius (representing body margin) is defined in (eq. \ref{eq:constraintCircleBoundary}).
-
-\begin{equation}\label{eq:constraintCircleBoundary}
-    circle(constraint)=
-    \left[
-        \begin{aligned}
-            & center = \frac{\sum boundary.point}{|boundary.point|} + correction \quad \cite{welzl1991smallest}\\
-            & radius = smallest Circle(edges(constraints)) \quad\cite{welzl1991smallest}
-        \end{aligned}
-    \right]
-\end{equation}
-
-\noindent The $(cell_{i,j,k}$ and \emph{constraint} intersection (eq. \ref{eq:contraintToCellIntersection}) is classification function. The \emph{classification} is necessary, because one \emph{constraint} induce: 
 \begin{enumerate}
-    \item \emph{Body Constraint} (hard constraint) - the distance between $cell_{i,j,k}$ closest border and \emph{circular boundary} center is in interval $[0,radius]$.
+    \item \emph{Airspace classification} - further airspace decomposition in F/G  uncontrolled airspace to establish \emph{flight routes} and controlled areas. Further flight levels in C class airspace segmentation to enforce manned/unmanned aviation separation.
     
-    \item \emph{Protection Zone Constraint} (soft constraint) - the distance between $cell_{i,j,k}$ closest border and \emph{circular boundary} center is in interval $]radius,radius+safety Margin]$.
+    \item \emph{Traffic complexity and density} - the \emph{congestion} of traffic is very common on the road. The capability to stop or stay still in the air is very costly to implement and maintain both in manned/unmanned aviation.
+    
+    \item \emph{Geographical situation} - flat-lands vs mountains, urban vs rural areas.
+    
+    \item \emph{Privacy} - in \emph{very low altitude} operations the privacy is always a concern.  The current restrictions to flew over private properties needs to be lifted in order to enable increased higher traffic density.
+    
+    \item \emph{Security} - the \emph{UTM} and \emph{RPAS/UAS} systems are creating network of \emph{autonomous agents}, this network is venerable to any kind of \emph{cyber/physical} threat.
+\end{enumerate}
+
+\paragraph{Types of RPAS/UAS operations:} The \emph{future UTM functionality} must cover wide range of functionality. It is envisaged that RPAS/UAS will operate in a mixed environment adhering to the requirements of the specified airspace it is operating in. RPAS/UAS will be able to operate as follows:
+
+\begin{enumerate}
+    \item \emph{Very low level (VLL) operations} ($<500 feet (AGL)$).
+    
+    \item  \emph{IFR (instrument Flight Rules) or VFR (Visual Flight Rules)} ($500 feet \le altitude < 60 000 feet (AMSL)$) - following the same rules that apply to manned aircraft. These can be conducted in RLOS or B-RLOS conditions.
+    
+    \item  \emph{Very High Level operations (VHL suborbital IFR operations above FL600)} ($\ge$ $60 000$ $feet$ $(AMSL)$).
+\end{enumerate}
+
+\paragraph{VLL operations (Below 500 feet AGL):} Operations performed at altitudes below 500 feet are not new to manned aviation as many operators - police, armed forces, balloons, gliders, training crafts, fire-fighting, ultra-light aircraft are allowed to operate in this environment. The rule allows VFR traffic to operate, under specific conditions prescribed by the national competent authorities, conditions that can differ from State to State. RPAS/UAS operating in this volume of airspace do not however confirm either IFR or VFR as set in ICAO Annex 2. \cite{icaoAnnex2}.
+
+\begin{enumerate}
+    \item \emph{VLOS (Visual Line Of Sight)} - RPAS/UAs operations within 500 meters range and max 500 feet  altitude from pilot. One of the main responsibilities of the pilot is the safe execution of the flight through visual means. The distance can be increased by the use of one or more observers, sometimes referred to as Extended-VLOS (E-VLOS).
+    
+    \item \emph{BVLOS (Beyond Visual Line Of Sight)} -  RPAS/UAS operations beyond 500 meters range but below 500ft. BVLOS does not require the operator to ensure the safety of the flight visually, and technical solutions such as DAA and C2 data link are required. RPAS/UTM do not adhere to VFR or IFR requirements; however it is foreseen that these flights could be conducted in IMC or VMC conditions. BVLOS operations are already being conducted in several States. Some examples are:
+    
+    \begin{enumerate}[a.]
+        \item Power-line control.
+        
+        \item Maritime surveillance.
+        
+        \item Pipeline control.
+        
+        \item  Agriculture.
+    \end{enumerate}
+\end{enumerate}
+
+\noindent\emph{VLL Management System:} In order to accommodate the expected growth of traffic in this airspace and ensure a sufficient level of safety, it is anticipated the necessity for a supporting UTM system. This VLL Traffic Management system will provide a series of localization and information services, aiming to the provision of information to the RPAS pilots and manned traffic. The VLL UTM system will not provide an active control service for RPAS in a normal ATC fashion, due to the large number of RPAS/UAS involved. Such a system could be based on existing technologies, such as the mobile phone network. Specific RPAS/UAS reporting systems, providing authorization and information capability, are already in use in several states.
+
+The RPAS/UAS managements system will have to cater to the following aspects:
+
+\begin{enumerate}
+    \item  RPAS/UAS Flight planning.
+    
+    \item  RPAS/UAS Flight authorization.
+    
+    \item  Real time RPAS/UAS tracking capability.
+    
+    \item  Provision of actual weather and aeronautical information.
+\end{enumerate}
+
+\noindent As previously mentioned, it is envisaged that the VLL management system will not support the active controlling of RPAS/UAS at lower altitudes. The large number of RPAS/UAS will not make this possible, notwithstanding any liability aspects. The system will be supporting operations and will be able to provide sufficient data to safely execute an RPAS/UAS flight, based on the information available to it. Data required could include, but are not limited to:
+
+\begin{enumerate}
+    \item Planned flight plans.
+
+    \item Active RPAS/UAS flight plans/missions.
+
+    \item Airspace data.
+
+    \item NOTAM (NOtice To AirMan).
+    
+    \item Weather.
+
+    \item Infrastructure availability.
+
+    \item Geo-fencing.
+
+    \item Manned operations below 500 feet (AGL).
 \end{enumerate}
 
 
-\begin{multline}\label{eq:contraintToCellIntersection}
-    intersection,constraint)=\dots\\\dots = 
-    \begin{cases}
-        hard &:\left[
-            \begin{aligned}
-                &distance(cell_{i,j,k},circle(constraint)) \le\dots\\ 
-                &\quad\dots\le circle(constraint).radius,\\
-                & constraint.altitude Range \cap cell_{i,j,k}.altitude Range \neq \varnothing,
-            \end{aligned}\right]\\
-             &\\
-        soft &:\left[
-            \begin{aligned}
-                &distance(cell_{i,j,k},circle(constraint)) >\dots\\ 
-                &\quad\dots > circle(constraint).radius,\\
-                &distance(cell_{i,j,k},circle(constraint)) \le\dots\\ 
-                &\quad\dots\le circle(constraint).radius + safety Margin,\\
-                & constraint.altitude Range \cap cell_{i,j,k}.altitude Range \neq \varnothing,
-            \end{aligned}\right]\\
-             &\\
-        none &:otherwise
-    \end{cases}
-\end{multline}
 
-\noindent The \emph{intersection impact} of constraint is handled separately for \emph{soft} and  \emph{hard} constraints. The \emph{avoidance} of hard constraints is \emph{mandatory}, the \emph{avoidance} of soft constraints is \emph{voluntary}.
+\noindent The following assumptions have been made for future ATM/UTM systems:
+\begin{enumerate}
+    \item A C2 service is provided.
 
-The constraints which have an \emph{soft intersection with cell} are added to cells impacting constraints set: 
-\begin{equation}\label{eq:softConstraintsCellIntersections}
-    cell_{i,j,k}. soft Constraints = 
-    \left\{
-        \begin{aligned}
-            &constraint \in Active Constraints:\\ 
-            &\quad intersection(cell_{i,j,k},constraint) = soft
-        \end{aligned}
-    \right\}
-\end{equation}
-
-\noindent The constraints which have an \emph{hard intersection with cell} are added to cells impacting constraints set:
-
-\begin{equation}\label{eq:hardConstraintsCellIntersections}
-    cell_{i,j,k}. hard Constraints = 
-    \left\{
-        \begin{aligned}
-            &constraint \in Active Constraints:\\ 
-            &\quad intersection(cell_{i,j,k},constraint) = hard
-        \end{aligned}
-    \right\}
-\end{equation}
+    \item The State has executed an airspace and assessment geo-fencing is in place.
+    
+    \item  RPAS/UAS have surveillance capability similar in terms of performance and compatible to manned aircraft surveillance capability.
+    
+    \item  Specific RPAS/UAS traffic management system is in place.
+\end{enumerate}
 
 \begin{note}
-    The final \emph{constraint rate value} (eq. \ref{eq:constraintRatingForCell}) is determined based on \emph{mission control run} feed to \emph{avoidance grid} (fig. \ref{fig:missionControlRunActivityDiagram}) defined in 7\textsuperscript{th} to 10\textsuperscript{th} step.
+    RPAS/UTM vehicle categorization is outlined in \emph{U-SPACE section} (sec. \ref{sec:USpace}).
 \end{note}
 
-\paragraph{Idea:} The basic ideas is the same as in case \emph{static constraints} (sec. \ref{s:virtualConstraints}). There is horizontal constraint and altitude constraint outlining the constrained space. The only additional concept is moving of \emph{constraint} on horizontal plane in global coordinate system. 
+\noindent The classification of traffic in this airspace segment goes like follow:
 
-The constraint intersection  with \emph{avoidance grid} is done in \emph{fixed decision Time}, for cell in \emph{fixed cell leave time} (eq. \ref{eq:cellLeaveTime}), which means concept from static obstacles can be fully reused.
-
-\paragraph{Definition:} The \emph{moving constraint definition} (eq. \ref{eq:movingConstraintDefinition}) covers minimal data scope for  moving constraint, assuming linear constraint movement. 
-
-The original definition (eq. \ref{eq:staticConstraint}) is enhanced with additional parameters to support constraint moving:
-
-\begin{enumerate}
-    \item \emph{Velocity} - velocity vector on 2D horizontal plane.
+\begin{itemize}    
+    \item[\textbf{Class I.:}] Class I traffic is primarily reserved for RPAS Category A (buy and fly). In areas of low traffic density this class can operate from ground up to 500ft and is a subject to the following requirements:
+    \begin{itemize}
+        \item[1.]  Mandatory declaration of operation..
+        
+        \item[2.]  RPAS must be capable to self-separate in 3D.
+        
+        \item[3.]  VLOS operations only.
+        
+        \item[4.]  Geo-fencing capability which ensures that this category remains separated from no-drone zones.
+    \end{itemize}
     
-    \item \emph{Detection time} - the time when \emph{constraint} was created/detected, this is the time when \emph center and boundary points position were valid.
-\end{enumerate}
+    \item[\textbf{Class II.:}] Class II traffic operates in free flight due to the nature of their operations like: Surveys, filming, search and rescue and other operations that have no fixed route structure. Class II can operate from ground up to 500 feet (AGL) and is a subject to the following requirements:
+    \begin{itemize}
+        \item[1.] Mandatory authorization for operation.
+        
+        \item[2.] Surveillance capability (C2 4G chip or other means).
+        
+        \item[3.] VLOS and BVLOS operations.
+        
+        \item[4.]  Free flight Capability.
+        
+        \item[5.]  RPAS/UAS must be capable to self-separate in 3D.
+        
+        \item[6.]  BVLOS will have barometric measurement equipage.
+    \end{itemize}
+    
+    
+    \item[\textbf{Class III.:}] Class III traffic only operates in BVLOS and is mainly used for transport purposes. It can operate as free flight or within a route structure pending on the requirements set by the airspace assessment.
+    \begin{itemize}
+        \item[1.] Mandatory authorization for operation.
+        
+        \item[2.] Has surveillance capability.
+        
+        \item[3.] BVLOS operations only.
+        
+        \item[4.] Free flight or route structure.
+        
+        \item[5.] Shall have barometric measurement equipage.
+        
+        \item[6.] Can operate from ground up to 500 ft.
+    \end{itemize}
+    
+    \item[\textbf{Class IV.:}] Class IV traffic can operate within the layer between ground and 500 feet. This category is designed for highly specialized operations and as such not many of these types RPAS/UAS are expected. These can be civil, state or military operations and as such:
+    \begin{itemize}
+        \item[1.] Require special authorization.
+        
+        \item[2.] Should be addressed on case by case basis.
+        
+        \item[3.] VLOS and BVLOS.
+        
+        \item[4.] Could require surveillance capability.
+    \end{itemize}
+\end{itemize}
 
-\begin{multline}\label{eq:movingConstraintDefinition}
-    constraint = \{position,boundary,\dots\\\dots, velocity, detection Time, \dots \\\dots altitude_{start},altitude_{end}, safety Margin\}
-\end{multline}
+\paragraph{IFR/VFR Operations (between 500ft - FL 600):} For RPAS/UAS to fly either IFR/VFR requires that they meet the airspace requirements as set for manned aviation. These operations include: airports, TMA and Enroute. For IFR capable RPAS additional requirements can be set for flying in the volumes of airspace where normal transport aircraft operate. As such it is envisaged to have minimum performance standards for elements such as speed, climb/descent speed, turn performance and latency.
 
-\paragraph{Cell Intersection:} The \emph{intersection algorithm} follows (eq. \ref{eq:contraintToCellIntersection}), only shift of the \emph{center and boundary points} is required. 
+\emph{Operations of Small RPAS above 500 feet:} In principle operations above 500 feet by small RPAS/UAS are not allowed unless they meet the IFR/VFR airspace requirements and have a solution to be visible to manned traffic. Other aspect like wake turbulence and separation standards would also have to be addressed. However States can still on a case by case basis accommodate RPAS/UAS above 500ft if the risk assessment of the intended operation is acceptably low.
 
-First let us introduce $\Delta time$ (eq. \ref{eq:deltatimeMovingconst}), which represents difference between the constraint detection time and expected cell leave time (eq. \ref{eq:cellLeaveTime}).
+\noindent The classification of traffic in this airspace segment goes like follow:
 
-\begin{equation}\label{eq:deltatimeMovingconst}
-    \Delta time = UAS_{leave}(cell_{i,j,k}) - detection Time
-\end{equation}
+\begin{itemize}
+    \item[\textbf{Class V.:}] Class V is IFR/VFR operations outside the Network not flying SIDs and STARs. In this environment, RPAS/UAS not meeting Network performance requirements will be able to operate without negatively impacting manned aviation. Operations at airports will be accommodated through segregation of launch and recovery.
 
-\noindent The constraint boundary is shifted to:
+    Ground operations can also be accommodated through either towing or wing walking.
 
-\begin{multline}
-    shifted Boundary(constraint) = \{new Point = point + velocity \times \Delta time:\dots\\\dots \forall point \in constraint.boundary \}
-\end{multline}
+    Operations from uncontrolled airports or dedicated launch and recovery sites are to be conducted initially under VLOS/VFR until establishing radio contact with ATC.
 
-\noindent The constraint center is shifted to:
-
-\begin{equation}
-    shifted Center(constraint) = constraint.center + velocity
-\end{equation}
+    No additional performance requirements will be set in this environment compared to manned aviation.
+    
+    RPAS/UAS operating in the environment will file a flight plan including information such as:
+    \begin{itemize}
+        \item[1.] Type of RPAS/UAS.
+        
+        \item[2.] Mission plan.
+        
+        \item[3.] Contingency procedure.
+        
+        \item[4.] RPAS/UAS will meet CNS airspace requirements.
+        
+        \item[5.] RPAS/UAS will be able to establish two-way communication with ATC/UTM if required.
+        
+        \item[6.]  RPAS/UTM will remain clear of manned aircraft.
+        
+        \item[7.]  RPAS operator must be able to contact ATC/UTM (if required) in regard to special conditions such as: data link loss, emergency,controlled termination of flight.
+        
+        \item[8.] RPA/UTM DAA capability will be cooperative with existing ACAS systems.
+    \end{itemize}
+    
+    \item[\textbf{Class VI.:}] Class VI. is IFR operations, including Network, TMA and Airport operations with RPAS/UAS capable of flying SIDs and STARs as designed for manned operations. These are either manned transport aircraft enabled to fly unmanned with similar capabilities or new types able to meet the set performance requirements for the Network, TMA and airports. General requirements RPAS/UAS operating in this environment will file a flight plan (mission) including:
+    \begin{itemize}
+        \item Type of RPAS/UAS.
+        \item Contingency procedure.
+        \item Mission plan (navigation, route, level).
+        \item RPAS/UAS will meet CNS airspace requirements.
+        \item RPAS/UAS will be able to establish two way communication with ATC/UTM.
+        \item RPAS/UAS operator must be able to contact ATC (if required) in regard to special conditions such as: data link loss, emergency, controlled termination of flight.
+        \item RPAS/UAS DAA capability will have ACAS functionality.
+    \end{itemize}
+\end{itemize}
 
 \begin{note}
-    The $\Delta time$ is calculated separately for each $cell_{i,j,k}$, because \emph{UAS} is also  moving and reaching cells in different times. The \emph{cell leave time} can be calculated in advance after reach set approximation.
+    The class operation class $V.-VI.$ is covered mostly in this work.
 \end{note}
 
+\paragraph{VHL operations (Above FL 600):} Suborbital unmanned flights operating at altitudes above FL 600 are expected to grow fast in numbers. Apart from military HALE RPAS, several other vehicles (i.e. space rockets, Virgin Galactic etc) operate through or in this block of airspace. At this moment, no management of this traffic is foreseen in most parts of the world. Particular attention should be given to the entry and exit of this high altitude volume as they need to interact with the airspace below.
 
-\paragraph{Alternative Intersection Implementation:} The alternative used for intersection selected based on polygon intersection algorithms review \citep{bentley1979algorithms}, the selected algorithm  is \emph{Shamos-Hoey} \cite{shamos1976geometric}.
+\noindent The classification of traffic in this airspace segment goes like follow:
 
-The implementation was tested on \emph{Storm scenario} (sec. \ref{s:testStorm}) and it yelds same results.
+\begin{itemize}
+    \item[\textbf{Class VII.:}]Class VII consists solely of IFR operations above FL600 and transiting non-segregated airspace.
+    
+    These types of RPAS/UAS are solely designed for operations at very high altitudes. The launch and recovery of fixed-wing RPAS/UAS can be from dedicated airports and outside congested airspace, unless Class VI requirements are met. This airspace will be shared with many different RPAS/UAS. Although their operations will not directly impact the lower airspace, however they will have to transit through either segregated or non-segregated airspace to enter or exit the airspace above FL 600.
+    
+    For such cases, temporary segregated airspace should be considered. Transition performance in segregated or non-segregated airspace below FL600 will be very limited since they will be focusing on long missions (up to several months).
+
+    The airspace in which these types of operation take place is mostly seen as uncontrolled. This requires no management of this traffic; however due to the expected numbers - estimated to be around 18000 just for Google and Facebook - it will become necessary to manage this type of operation since the performance envelopes differ a lot. Speeds can vary from average wind speed at those altitudes (for Google balloons) up to above-mach.
+
+    Launch and recovery of unmanned balloons or aircraft, together with emergency situations, will also require a set of procedures and pre-arranged coordination capabilities to ensure the safety of traffic below this altitude.
+\end{itemize}
