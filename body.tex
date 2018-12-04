@@ -6,33 +6,41 @@
 %--------------
 %- COPY START -
 %--------------
-\section{(R) Contributions}\label{s:Contributions} 
-\noindent The \emph{contributions} of this work can be divined into two categories:
-    
-\paragraph{Conceptual Contributions:} The contributions enhancing and enriching the conceptual level of \emph{Detect \& Avoid} systems, namely:
+\section{(R) Overview}\label{s:Overview}
+
+\noindent The work is organized like follows:
 
 \begin{enumerate}
-    \item \emph{Movement automaton control and prediction} -  necessity to abstract the control of the system from the \emph{detect and avoid} systems, leads to customization of hybrid automaton (sec. \ref{s:HybridAutomaton}) to \emph{movement automaton} (def. \ref{s:MovementAutomatonDefinitionAndProperties}). The movement automaton can be adapted to nonlinear system (sec. \ref{s:UASNonlinearModel}) as a instance (sec. \ref{s:movementAutomatonDefinition}). The movement automaton can be also used as a predictor of the system (sec. \ref{s:referenceTrajectoryGenerator}). The \emph{initial state disparity issue} \cite{gomola2017obstacle} has been addressed in (sec. \ref{s:segmentedMovementAutomaton}).
+    \item \emph{Introduction} (ch. \ref{ch:introduction}) - the introduction chapter giving overview of work motivation, goals, contributions and \emph{author`s list of publication}.
     
-    \item \emph{Trajectory as a discrete command chain} -  the \emph{movement automaton} as a control interface consuming the discrete command chain enabled the \emph{finite discrete representation} of trajectory (eq. \ref{eq:ourTrajectoryImplementation}).
+    \item \emph{Collision Avoidance} (ch. \ref{ch:CollisionAvoidance}) - This chapter gives aerospace related background. The manned aviation is serving as knowledge base for assumption of future UAS Detect \& Avoid functionality. The chapter gives overview of airspace classification, which told us where and what we can do or expect. Aircraft operational rules for general are reflected into \emph{separation functionality}. The separation can be passive enforced by Air Traffic Management authority or active enforced by \emph{ACAS-X/TCAS} systems. The \emph{UAS Traffic Management} is parallel to maned aviation practices with additional layer of complexity.  The \emph{Event Based avoidance} is introduced to give overview of concepts used later.
     
-    \item \emph{Reach set discretization} - the \emph{infinite reach set} (def. \ref{}) can be represented as a tree of movements from system initial state (def. \ref{def:ReachSetApproximationByMovementAutomaton}). This tree can have associated properties, like reachibility of each trajectory segment (eq. \ref{eq:trajectoryReachibility}).  The advantage of having finite maneuver set, with little precision sacrifice, which can be calculated prior the flight have huge impact on \emph{computation complexity} (sec. \ref{sec:MCRcomputationalComplexity}). Enabling to use approach on different platforms with small computational power. 
+    \item \emph{Background Theory} (ch. \ref{ch:backGroundTheory}) - this chapter outlines background necessary for approach understanding. The \emph{control theory} system models are used as base for the \emph{reach set} calculation. The important concept of \emph{movement automaton} (special case of hybrid automaton) used for prediction, trajectory representation, and, reach set estimation is introduced. The LiDAR related theory and complements are presented at last. 
     
-    \item \emph{Operational space assessment} - the operational space is separated by grid into finite set of the cells. Each cell has properties to track like the occurrence of obstacle, presence of intruder or impact of constraint. The \emph universal data fusion procedure (sec. \ref{s:sensorFusion}) is enabling accumulation of treat information from various sources.
+    \item \emph{Problem Statement} (ch. \ref{c:problemStatement}) - this chapter states the problem solved in this work. The basic definition and terminology is established at beginning with initial problem and assumptions. Incremental problem is introduced with increasing complexity and relaxed conditions. Avoidance and Navigation functional and non-functional requirements are stated at last. 
     
-    \item \emph{Hierarchical threat assessment} -  the \emph{various threat} sources (obstacles, intruders, constraints) are categorized according to operational environment/rules and their avoidance priority is handled according to that (fig. \ref{fig:missionControlRunActivityDiagram}).
+    \item \emph{State of Art} (ch. \ref{ch:stateOfArt}) - this chapter covers important results of other researcher works in topics of Movement Automaton, Sensor \& Data Fusion, Navigation Algorithm, Reach Sets, and Testing Approach. The \emph{UAS Traffic Management} concept relevant for this work is introduced.  
     
-    \item \emph{UAS Traffic Management} - the architecture proposal for traffic management  as cooperative authority (sec. \ref{sec:utmArchitecture}) covers some basic maneuvers (sec. \ref{sec:handlingHeadOnApproach}, \ref{sec:handlingConvergingManuever},\ref{sec:handlingOvertakeManuever}), the more important is the adaptability of presented approach to cooperative (sec. \ref{sec:cooperativeConflictResolution}) and non-cooperative (sec. \ref{sec:nonCooperativeConflictResolution}) avoidance modes, showing adaptability. 
-\end{enumerate}
-
-\paragraph{Implementation Contributions:} The concepts, which solve implementation issues for \emph{Detect \& Avoid} systems, namely:
-
-\begin{enumerate}
-    \item \emph{Operational space segmentation} - the \emph{planar grid} (sec. \ref{s:AvoidanceGrid}) slice (fig. \ref{fig:LidarSpaceSegmentation}) have been selected, because it can be used for fast assessment of LiDAR scan data to estimate, obstacle (\ref{fig:P01CountOfLiDARHits}) or visibility (\ref{fig:P02OvershadowedMapobstacle}). The cell volume is increasing with distance from UAS, this gives us decreased space status assessment complexity.
+    \item \emph{Approach} (ch. \ref{ch:approach}) - this chapter describes approach, it starts with overview (sec. \ref{s:approachOverview}), outlining the block scheme of the system (fig. \ref{fig:AvoidanceFrameworkConceptNew}). The discretization of the space, trajectories and system model are covered in (sec. \ref{s:modelMAImplementation} - \ref{s:AvoidanceGrid}), the following topics are covered:
+    \begin{enumerate}[a.]
+        \item \emph{Reach Set Estimation} (sec. \ref{s:reachSet}) - the discretization, performance evaluation and generation algorithms.
+        
+        \item \emph{Encounter Modeling} (sec. \ref{s:staticObstacles} - \ref{s:intruders}) - static obstacles, intruders, static/moving constraints, and more.
+        
+        \item \emph{Collision Avoidance} (sec. \ref{s:avoidanceConcept}) - the avoidance/navigation loop with global data fusion procedure, complexity and safety margin calculations.
+        
+        \item \emph{Further to Cooperative Operations} (sec. \ref{sec:UASTrafficManagement} - \ref{sec:ruleEngine}) - the approach to satisfy scalability and \emph{UTM} requirements.
+    \end{enumerate}
     
-    \item \emph{Wave-front algorithm for avoidance estimation} - to estimate reach set the space exploration method has been developed. The \emph{rapid exploration tree} (fig. \ref{fig:rapidExplorationTrajectoryTree}) is employed as \emph{wave-front} expansion (alg. \ref{alg:Wavefront Propagation}). Various shapes and properties of \emph{reach set estimation} can be achieved employing the \emph{constrained expansion functions} for \emph{chaotic} (alg. \ref{alg:ExpansionConstraintFunctionForChaoticReachSet}), harmonic (alg. \ref{alg:ExpansionConstraintFunctionForHarmonicReachSet}), and, \emph{ACAS-like} (alg. \ref{alg:ExpansionConstraintFunctionForACASLikeReachSet}) reach set approximations.
+    \item \emph{Simulations} (ch. \ref{Simulations}) the simulations covers aspects developed in approach, the test plan (tab. \ref{tab:testCasesSummary}) summarizes test cases. The results are outlined in (tab. \ref{tab:testCasesPerformacneEvaluation}), the computation load statistics are summarized in (tab. \ref{tab:computationLoadStatistics}). The test are divided into following categories:
     
-    \item \emph{Encounter and constraints models} - the planar grid used in solution required a development of encounter models for static obstacles, constraints (sec. \ref{s:staticObstacles}), intruders, moving constraints (sec. \ref{s:intruders}). The intersection algorithms can be reused in other approaches using unusual grid.
+    \begin{enumerate}[a.]
+        \item \emph{Non-cooperative Test Cases} (sec. \ref{s:noncooperativeTestCases}) - various obstacles, weather constraints and non-cooperative intruders test cases
     
-    \item \emph{Avoidance process enhancement (Rule engine)} - the air traffic rules are changing based on time and geographic location, the UTM concept is under development. These reasons are calling to use flexible implementation architecture, rule engine (sec. \ref{s:RuleEngineArchitecture}). The rule engine can be set to cover any kind of rules (fig. \ref{fig:RuleEngineInstanceLevels}).
+        \item \emph{Cooperative Test Cases} (sec. \ref{s:cooperativeTestCases}) - maneuvers in controlled airspace under supervision of traffic management.
+    
+        \item \emph{Reach Set Estimation Performance and Properties} (sec. \ref{Reduced Reach Sets Performance}) - the comparison of various estimation methods, the impact on complexity.
+    \end{enumerate}
+    
+    \item \emph{Conclusion and Future Work} (ch. \ref{ch:Conclusion}) - work conclusion, summarizing achieved results, comparing other approaches, outlining reusable modular parts of approach, utilizing the future work on approach shortcommings.
 \end{enumerate}
