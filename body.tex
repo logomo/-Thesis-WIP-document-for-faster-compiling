@@ -7,70 +7,40 @@
 %- COPY START -
 %--------------
 
-\chapter{Introduction}
-\noindent This works present an approach based on \emph{reach set approximation} to \emph{detect \& avoid} various sort of threats in \emph{controlled/non-controlled} airspace environment. 
+\setcounter{chapter}{1}
+\setcounter{section}{1}
 
-The \emph{motivation} is summarized in (sec. \ref{s:motivation}). The work \emph{goals} are given in (sec. \ref{s:goals}). A \emph{thesis organization} with notes is summarized in (sec. \ref{s:goals}). A notable contributions of work are listed in (sec. \ref{s:Contributions}). The listing of student publications/technical reports/open source contributions are given in (sec. \ref{sec:listOfPublications}) 
+\section{Goals}
+\paragraph{Situation:} The \emph{UAS} equipped with cooperative/non-cooperative surveillance sensors, with prior knowledge of operation space has to fly a mission represented ordered set of waypoints. The set of sensors can change depending on UAS construction. The minimal airworthiness for given operation is assumed.
 
-\section{Motivation}\label{s:Overview}
-\noindent The commercial potential of \emph{Unmanned Autonomous Systems} (UAS) is significant  enough to initiate one of the most significant changes in \emph{aviation} history \cite{airbusUTM2018blueprint}. The current \emph{usage} of UAS is limited by \emph{strict regulations} \cite{icao4444,icaoAnnex2,icaoAnnex11}. The goal is to enable \emph{full integration} of UAS in \emph{European airspace} by end of the year 2035 \cite{eurocontrol2018rpasatm}.
+\paragraph{Problem:} Given environment and artifact definitions (sec. \ref{s:basicDefinitions}) with \emph{initial assumptions} (sec. \ref{s:initialAssumptions}) and \emph{incremental problem definition} (sec. \ref{s:IncrementalProblemDefinition}) develop \emph{obstacle avoidance framework} which will satisfy \emph{avoidance} (sec. \ref{s:AvoidanceRequirements}) and \emph{navigation} (sec. \ref{s:navigationRequirements}).
 
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{\FIGDIR/I001TrafficManagement}
-    \caption{Present and future \emph{Air Traffic Management} (ATC) \cite{airbusUTM2018blueprint}.}
-    \label{fig:airTrafficManagementEvolution}
-\end{figure}
-
-\paragraph{UAS integraiton into Air Traffic:} The major effort is focused on \emph{Air Traffic Control} (ATC) changes. The \emph{actual} organization (sec. \ref{sec:AirspaceClassification}) and management (sec. \ref{sec:WellClear}) of airspace is centralized and \emph{human operated}.  
-
-The \emph{ongoing changes} are shown in (fig. \ref{fig:airTrafficManagementEvolution}). The \emph{UAS Traffic Management} (UTM) (sec. \ref{sec:UTM}) complementing ATC is introduced to manage unmanned aviation. The additional traffic hubs, for UAS \emph{delivery \& transportation} services are added. The greatest change is on previously \emph{low-altitude uncontrolled} airspace, this space has new authority (UTM). The future UAS must implement mechanisms for \emph{event-based} navigation and avoidance (sec. \ref{sec:EventBasedAvoidance}).
-
-Since 2014, there is a visible strong political support for developing rules on drones but regulations are harmonizing slowly. The European Aviation Safety Agency (EASA) has been tasked to develop a regulatory framework for drone operations and proposals for the regulation of "low-risk" UAV operations. In achieving this, EASA is working closely with the Joint Authorities for Regulation of Unmanned Systes (JARUS) \cite{jarus2016regulations}.
-
-The \emph{operational rules} (sec. \ref{sec:AircraftOperationRules}) with \emph{rules of the air} \cite{icaoAnnex2} which are enforced now are simple. The \emph{future flight rules} (fig. \ref{fig:flightRulesIntro}) will be more complicated including the precise waypoint system and more complex missions. The future flight rules will be micro-managed by UTM. The example of such micro-management is shown in (sec. \ref{sec:UASTrafficManagement}, \ref{s:RuleEngineArchitecture}). 
-
-The \emph{increase} of \emph{traffic density} increases the \emph{accident probability/severity}.  There are different threats endangering UAS, the \emph{obstacles} imposes eminent destruction threat, intruders can cooperate in mutual avoidance, the weather avoidance becomes more critical, the international/national authority can impose additional operational constraints. These threats needs to be well managed and prioritized to guarantee safe UAS operations.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{\FIGDIR/I002FlightRules}
-    \caption{Flight rules overview. \cite{airbusUTM2018blueprint}.}
-    \label{fig:flightRulesIntro}
-\end{figure}
-
-\paragraph{Detect \& Avoid:} The other approach is bottom-up, that means the development of basic adaptable functionality to cover complex navigation/avoidance tasks in \emph{controlled airspace}. The intuitive definition of \emph{Detect \& Avoid} (DAA) functionality is given in (fig. \ref{fig:detectAdnAvoidIntroduction}).
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.6\textwidth]{\FIGDIR/I003DetectAndAvoid}
-    \caption{\emph{Detect \& Avoid} (DAA) principle \cite{jenie2014velocity}.}
-    \label{fig:detectAdnAvoidIntroduction}
-\end{figure}
-
-\noindent The DAA can be applied in short term (avoidance) and long term (navigation) tasks. It consist from three continuously repeating major steps:
-\begin{enumerate}
-    \item \emph{Sense} - the processing of intermediate sensor reading, the physical world approximation creation.
-    
-    \item \emph{Detect} - an addition of information from other sources to create complex situation assessment scenario, future possibilities projection and control strategy selection.
-    
-    \item \emph{Avoid} - execution of selected control strategy while checking possible changing events.
-\end{enumerate}
-
-The \emph{short term avoidance} (sec. \ref{s:aviudabceGridRun}) can be chained into \emph{long term navigation} (sec. \ref{s:missionControlRun}). This long term navigation can be used to solve \emph{UTM/ATM} imposed constraints, under assumption that there is sufficient \emph{data fusion} (sec. \ref{s:sensorFusion}).
-
-\paragraph{Challenge Motivation:} Both \emph{Air Traffic Control} and \emph{Detect \& Avoid} requires a tool to assess possible UAS maneuvering:
+\paragraph{Expected Solution:} Define an approach based on \emph{reach sets} which is capable of:
 
 \begin{enumerate}
-    \item \emph{Air Traffic Control} needs to know the UAS maneuvering capabilities in order to \emph{validate} feasibility of \emph{issued orders} and to predict future \emph{trajectory} for \emph{collision prevention}.
+    \item \emph{Static obstacle avoidance} - to avoid ground, man-made structures in open terrain. 
     
-    \item \emph{Detect \& Avoid} needs to calculate feasible \emph{system constraints feasible maneuvering strategy} in finite time to ensure own safety. 
+    \item \emph{Intruders avoidance} - to avoid flying objects which does not have the intention to harm our UAS, detected in sufficient distance. 
+
+    \item \emph{Geo-fencing support} - to avoid known zones/airspace portions, which have forbidden entry.
+
+    \item \emph{Weather avoidance} - to avoid known zones of harmful weather conditions.
+
+    \item \emph{Cooperative conflict resolution} - to communicate own position to authority and to follow authority orders.
+    
+    \item \emph{Treat prioritization} - to assess avoidance according to natural or man-made priorities. (Rather break geo-fence, than crashing into ground).
 \end{enumerate}
 
-\paragraph{Reach Sets:} These challenges are addressable by employment of \emph{reach sets} (sec. \ref{s:ReachSets}). The \emph{reach set} is self-validating set of possible maneuvering strategies for some initial UAS state and some time-period. 
+\paragraph{Validation:} Develop test-framework to showcase approach properties. Define \emph{test scenarios} (sec. \ref{}) to validate \emph{Expected Solution Performance} (sec. \ref{s:testingApproach}, tab. \ref{tab:testCasesSummary}) in terms of \emph{avoidance capability} (sec. \ref{s:performanceEvaluationTable}) and \emph{computational feasibility} (sec. \ref{s:ComputaitonFootprint}).
 
-To guarantee finite time evaluation, the discretization of \emph{operation space} (sec. \ref{s:AvoidanceGrid}) and \emph{movement discretization} (sec. \ref{}) needs to be introduced. The discretization gives finite countable sets of choices, therefore it also guarantees finite time evaluation process.
+\paragraph{Application Requirements:} There are  following application requirements, based on similar applications for \emph{manned aviation} and \emph{industry expectations}:
 
-Our \emph{implementation} of \emph{reach set approximation} (sec. \ref{s:reachSet}) enables to encode some sought behavioral patterns as natural properties (sec. \ref{s:constrainedTrajectoryExpansion}). This enables to generate specific task oriented \emph{reach set approximation} for navigation (sec. \ref{s:chaoticReachSet}), avoidance (sec. \ref{s:harmonicReachSet}), UTM behavior predictions (sec. \ref{sec:collisionCase}). 
-
+\begin{enumerate}
+    \item \emph{Low performance requirements} - the computational footprint of the approach should be polynomial. The most of actual UAS systems have \emph{embedded computer} with low computation power.
+    
+    \item \emph{Deterministic} - the \emph{avoidance strategy} should be achieved in finite time frame. The mandatory requirement for \emph{airborne operation support application}, the advice needs to be reproducible under same conditions.
+    
+    \item \emph{Scalability} - the \emph{avoidance framework} should be portable to different platforms and it should work with different sensor array. The interface requirement for \emph{control} and \emph{data fusion} coming from other \emph{collision avoidance systems}.
+    
+    \item \emph{Adaptability} - the \emph{avoidance process} should have tuning points where is possible to change behaviour according to UAS context. The regulations are changing with location, time and circumstances, the part of calculation/control process needs to be implemented dynamically.
+\end{enumerate}
