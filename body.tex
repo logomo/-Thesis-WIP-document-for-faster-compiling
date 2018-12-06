@@ -1,46 +1,76 @@
 % For formatting purposes only 
-\setcounter{chapter}{1}
-\setcounter{section}{3}
+\setcounter{chapter}{0}
+\setcounter{section}{0}
 \setcounter{subsection}{0}
 %\listofalgorithms - think about it ...
 %--------------
 %- COPY START -
 %--------------
-\section{(R) Overview}\label{s:Overview}
 
-\noindent The work is organized like follows:
+\chapter{Introduction}
+\noindent This works present an approach based on \emph{reach set approximation} to \emph{detect \& avoid} various sort of threats in \emph{controlled/non-controlled} airspace environment. 
+
+The \emph{motivation} is summarized in (sec. \ref{s:motivation}). The work \emph{goals} are given in (sec. \ref{s:goals}). A \emph{thesis organization} with notes is summarized in (sec. \ref{s:goals}). A notable contributions of work are listed in (sec. \ref{s:Contributions}). The listing of student publications/technical reports/open source contributions are given in (sec. \ref{sec:listOfPublications}) 
+
+\section{Motivation}\label{s:Overview}
+\noindent The commercial potential of \emph{Unmanned Autonomous Systems} (UAS) is significant  enough to initiate one of the most significant changes in \emph{aviation} history \cite{airbusUTM2018blueprint}. The current \emph{usage} of UAS is limited by \emph{strict regulations} \cite{icao4444,icaoAnnex2,icaoAnnex11}. The goal is to enable \emph{full integration} of UAS in \emph{European airspace} by end of the year 2035 \cite{eurocontrol2018rpasatm}.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{\FIGDIR/I001TrafficManagement}
+    \caption{Present and future \emph{Air Traffic Management} (ATC) \cite{airbusUTM2018blueprint}.}
+    \label{fig:airTrafficManagementEvolution}
+\end{figure}
+
+\paragraph{UAS integraiton into Air Traffic:} The major effort is focused on \emph{Air Traffic Control} (ATC) changes. The \emph{actual} organization (sec. \ref{sec:AirspaceClassification}) and management (sec. \ref{sec:WellClear}) of airspace is centralized and \emph{human operated}.  
+
+The \emph{ongoing changes} are shown in (fig. \ref{fig:airTrafficManagementEvolution}). The \emph{UAS Traffic Management} (UTM) (sec. \ref{sec:UTM}) complementing ATC is introduced to manage unmanned aviation. The additional traffic hubs, for UAS \emph{delivery \& transportation} services are added. The greatest change is on previously \emph{low-altitude uncontrolled} airspace, this space has new authority (UTM). The future UAS must implement mechanisms for \emph{event-based} navigation and avoidance (sec. \ref{sec:EventBasedAvoidance}).
+
+Since 2014, there is a visible strong political support for developing rules on drones but regulations are harmonizing slowly. The European Aviation Safety Agency (EASA) has been tasked to develop a regulatory framework for drone operations and proposals for the regulation of "low-risk" UAV operations. In achieving this, EASA is working closely with the Joint Authorities for Regulation of Unmanned Systes (JARUS) \cite{jarus2016regulations}.
+
+The \emph{operational rules} (sec. \ref{sec:AircraftOperationRules}) with \emph{rules of the air} \cite{icaoAnnex2} which are enforced now are simple. The \emph{future flight rules} (fig. \ref{fig:flightRulesIntro}) will be more complicated including the precise waypoint system and more complex missions. The future flight rules will be micro-managed by UTM. The example of such micro-management is shown in (sec. \ref{sec:UASTrafficManagement}, \ref{s:RuleEngineArchitecture}). 
+
+The \emph{increase} of \emph{traffic density} increases the \emph{accident probability/severity}.  There are different threats endangering UAS, the \emph{obstacles} imposes eminent destruction threat, intruders can cooperate in mutual avoidance, the weather avoidance becomes more critical, the international/national authority can impose additional operational constraints. These threats needs to be well managed and prioritized to guarantee safe UAS operations.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{\FIGDIR/I002FlightRules}
+    \caption{Flight rules overview. \cite{airbusUTM2018blueprint}.}
+    \label{fig:flightRulesIntro}
+\end{figure}
+
+\paragraph{Detect \& Avoid:} The other approach is bottom-up, that means the development of basic adaptable functionality to cover complex navigation/avoidance tasks in \emph{controlled airspace}. The intuitive definition of \emph{Detect \& Avoid} (DAA) functionality is given in (fig. \ref{fig:detectAdnAvoidIntroduction}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{\FIGDIR/I003DetectAndAvoid}
+    \caption{\emph{Detect \& Avoid} (DAA) principle \cite{jenie2014velocity}.}
+    \label{fig:detectAdnAvoidIntroduction}
+\end{figure}
+
+\noindent The DAA can be applied in short term (avoidance) and long term (navigation) tasks. It consist from three continuously repeating major steps:
+\begin{enumerate}
+    \item \emph{Sense} - the processing of intermediate sensor reading, the physical world approximation creation.
+    
+    \item \emph{Detect} - an addition of information from other sources to create complex situation assessment scenario, future possibilities projection and control strategy selection.
+    
+    \item \emph{Avoid} - execution of selected control strategy while checking possible changing events.
+\end{enumerate}
+
+The \emph{short term avoidance} (sec. \ref{s:aviudabceGridRun}) can be chained into \emph{long term navigation} (sec. \ref{s:missionControlRun}). This long term navigation can be used to solve \emph{UTM/ATM} imposed constraints, under assumption that there is sufficient \emph{data fusion} (sec. \ref{s:sensorFusion}).
+
+\paragraph{Challenge Motivation:} Both \emph{Air Traffic Control} and \emph{Detect \& Avoid} requires a tool to assess possible UAS maneuvering:
 
 \begin{enumerate}
-    \item \emph{Introduction} (ch. \ref{ch:introduction}) - the introduction chapter giving overview of work motivation, goals, contributions and \emph{author`s list of publication}.
+    \item \emph{Air Traffic Control} needs to know the UAS maneuvering capabilities in order to \emph{validate} feasibility of \emph{issued orders} and to predict future \emph{trajectory} for \emph{collision prevention}.
     
-    \item \emph{Collision Avoidance} (ch. \ref{ch:CollisionAvoidance}) - This chapter gives aerospace related background. The manned aviation is serving as knowledge base for assumption of future UAS Detect \& Avoid functionality. The chapter gives overview of airspace classification, which told us where and what we can do or expect. Aircraft operational rules for general are reflected into \emph{separation functionality}. The separation can be passive enforced by Air Traffic Management authority or active enforced by \emph{ACAS-X/TCAS} systems. The \emph{UAS Traffic Management} is parallel to maned aviation practices with additional layer of complexity.  The \emph{Event Based avoidance} is introduced to give overview of concepts used later.
-    
-    \item \emph{Background Theory} (ch. \ref{ch:backGroundTheory}) - this chapter outlines background necessary for approach understanding. The \emph{control theory} system models are used as base for the \emph{reach set} calculation. The important concept of \emph{movement automaton} (special case of hybrid automaton) used for prediction, trajectory representation, and, reach set estimation is introduced. The LiDAR related theory and complements are presented at last. 
-    
-    \item \emph{Problem Statement} (ch. \ref{c:problemStatement}) - this chapter states the problem solved in this work. The basic definition and terminology is established at beginning with initial problem and assumptions. Incremental problem is introduced with increasing complexity and relaxed conditions. Avoidance and Navigation functional and non-functional requirements are stated at last. 
-    
-    \item \emph{State of Art} (ch. \ref{ch:stateOfArt}) - this chapter covers important results of other researcher works in topics of Movement Automaton, Sensor \& Data Fusion, Navigation Algorithm, Reach Sets, and Testing Approach. The \emph{UAS Traffic Management} concept relevant for this work is introduced.  
-    
-    \item \emph{Approach} (ch. \ref{ch:approach}) - this chapter describes approach, it starts with overview (sec. \ref{s:approachOverview}), outlining the block scheme of the system (fig. \ref{fig:AvoidanceFrameworkConceptNew}). The discretization of the space, trajectories and system model are covered in (sec. \ref{s:modelMAImplementation} - \ref{s:AvoidanceGrid}), the following topics are covered:
-    \begin{enumerate}[a.]
-        \item \emph{Reach Set Estimation} (sec. \ref{s:reachSet}) - the discretization, performance evaluation and generation algorithms.
-        
-        \item \emph{Encounter Modeling} (sec. \ref{s:staticObstacles} - \ref{s:intruders}) - static obstacles, intruders, static/moving constraints, and more.
-        
-        \item \emph{Collision Avoidance} (sec. \ref{s:avoidanceConcept}) - the avoidance/navigation loop with global data fusion procedure, complexity and safety margin calculations.
-        
-        \item \emph{Further to Cooperative Operations} (sec. \ref{sec:UASTrafficManagement} - \ref{sec:ruleEngine}) - the approach to satisfy scalability and \emph{UTM} requirements.
-    \end{enumerate}
-    
-    \item \emph{Simulations} (ch. \ref{Simulations}) the simulations covers aspects developed in approach, the test plan (tab. \ref{tab:testCasesSummary}) summarizes test cases. The results are outlined in (tab. \ref{tab:testCasesPerformacneEvaluation}), the computation load statistics are summarized in (tab. \ref{tab:computationLoadStatistics}). The test are divided into following categories:
-    
-    \begin{enumerate}[a.]
-        \item \emph{Non-cooperative Test Cases} (sec. \ref{s:noncooperativeTestCases}) - various obstacles, weather constraints and non-cooperative intruders test cases
-    
-        \item \emph{Cooperative Test Cases} (sec. \ref{s:cooperativeTestCases}) - maneuvers in controlled airspace under supervision of traffic management.
-    
-        \item \emph{Reach Set Estimation Performance and Properties} (sec. \ref{Reduced Reach Sets Performance}) - the comparison of various estimation methods, the impact on complexity.
-    \end{enumerate}
-    
-    \item \emph{Conclusion and Future Work} (ch. \ref{ch:Conclusion}) - work conclusion, summarizing achieved results, comparing other approaches, outlining reusable modular parts of approach, utilizing the future work on approach shortcommings.
+    \item \emph{Detect \& Avoid} needs to calculate feasible \emph{system constraints feasible maneuvering strategy} in finite time to ensure own safety. 
 \end{enumerate}
+
+\paragraph{Reach Sets:} These challenges are addressable by employment of \emph{reach sets} (sec. \ref{s:ReachSets}). The \emph{reach set} is self-validating set of possible maneuvering strategies for some initial UAS state and some time-period. 
+
+To guarantee finite time evaluation, the discretization of \emph{operation space} (sec. \ref{s:AvoidanceGrid}) and \emph{movement discretization} (sec. \ref{}) needs to be introduced. The discretization gives finite countable sets of choices, therefore it also guarantees finite time evaluation process.
+
+Our \emph{implementation} of \emph{reach set approximation} (sec. \ref{s:reachSet}) enables to encode some sought behavioral patterns as natural properties (sec. \ref{s:constrainedTrajectoryExpansion}). This enables to generate specific task oriented \emph{reach set approximation} for navigation (sec. \ref{s:chaoticReachSet}), avoidance (sec. \ref{s:harmonicReachSet}), UTM behavior predictions (sec. \ref{sec:collisionCase}). 
+
