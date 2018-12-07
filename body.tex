@@ -1,5 +1,5 @@
 % For formatting purposes only 
-\setcounter{chapter}{7}
+\setcounter{chapter}{8}
 \setcounter{section}{0}
 \setcounter{subsection}{0}
 %\listofalgorithms - think about it ...
@@ -7,201 +7,82 @@
 %- COPY START -
 %--------------
 
-\cleardoublepage
-\chapter{\secState{R/W}Conclusion and Future Work}\label{ch:Conclusion}
-\noindent This section summarizes \emph{obstacle avoidance framework} functionality (sec. \ref{s:conclusionSummary}), provides \emph{comparison to other methods} (sec. \ref{s:OtherMethodsComparison}), outlines \emph{approach reusability} (sec. \ref{s:approachReusability}), summarizes \emph{lessons learned} (sec. \ref{s:lessonsLearned}) and introduces possible \emph{future research heading} (sec. \ref{s:futureWork}).
-
-\section{\secState{W}Summary}\label{s:conclusionSummary}
-\noindent The \emph{obstacle avoidance} is a complex topic the work has adressed:
-\begin{itemize}
-    \item Reactive obstacle avoidance (practically for large scale of threats) - obstacles, intruders, constraints
-    
-    \item Event Based obstacle avoidance (partially for smal subset of events +UTM) - there are issues which has not been adressed (and they will be later)
-    
-    \item Pre-emptive obstacle avoidance - this has not been adressed at all still holding the reachibility of waypoint assumption (link assumption) 
-    \item link the avoidance levels from chapter 6
-\end{itemize}
-
-    
-\subsection{\secState{W}Reach Set Role in Avoidance}\label{s:conclusionReachSet}
-
-\noindent The reach set represents a set of avoidance/movement (manuevering) strategies which can be used in different context (situations)
-\begin{itemize}
-    \item Chaotic - intermediate emergency avoidance
-    \item Harmonic - navigation
-    \item Combined - non controlled airspace navigation + avoidance
-    \item ACAS like  controlled airspace navigation + avoidance
-\end{itemize}
+\section{\secState{R}Summary}\label{s:conclusionSummary}
+\noindent The \emph{obstacle avoidance} is a complex topic the work has addressed:
 
 
-\subsection{\secState{W}Avoidance/Navigation Run}\label{s:conclusionAvoidanceNavigationRun}
-
-\noindent The principle of hierarchical decision making
-\begin{itemize}
-    \item Avoidance Run - one decision, one context
-    \item Navigation Run - multiple avoidance runs with different context (hierarchical applicaiton), joining multiple decisions over time
-    \item short summary with references
-\end{itemize}
-
-
-\section{\secState{W}Comparison to Other Methods}\label{s:OtherMethodsComparison}
-
+\noindent The approach presented in (ch. \ref{ch:approach}) is covering the challenges (fig. \ref{fig:AvoidanceLevels}) related to:
 \begin{enumerate}
-	\item Vector field avoidance \cite{borenstein1991vector}
-	\item Potential field \cite{koren1991potential}
+    \item \emph{Reactive avoidance} - covering static obstacles, moving intruders, geo-fencing, weather effects.
+    
+    \item \emph{Event based avoidance} - covering core UTM functionality and cooperative avoidance.
+    
+    \item \emph{Pre-emptive avoidance} - not covered in this work, the assumption about initial waypoint reachibility still holds (ass. \ref{ass:reachableWaypoints}).
 \end{enumerate}
 
-\subsection{\secState{W}Scalability}\label{s:conclusionScalability}
-
-\begin{itemize}
-    \item the scalability is a key for everchanging rules/regulations accomodations
+\paragraph{Reactive Avoidance Test Coverage:} Testing avoidance capabilities against \emph{static obstacles}, \emph{non-cooperative intruders}, \emph{moving hard constraints} are covered. Coverage of the \emph{soft constraints}, \emph{map obstacles} and \emph{detected obstacles} are implicitly covered due the properties of \emph{safety} and \emph{body} margins (tab. \ref{tab:uncontrolledAirspaceViolations}).
     
-    \item many concepts have margins hardwired
-    
-    \item our concept is limited by turning ratio + body radius < margin < max range of sensor field - avoidance grid
-    
-    \item our approach is scalable trough concept of multiple  margins:
-    \begin{itemize}
-        \item body margin
-        \item safety margin
-        \item soft constraitns - warning margin
-        \item hard constraints - body margin
-    \end{itemize}
-    
-\end{itemize}
-
-\subsection{\secState{W}Conservative Method Comparison}\label{s:conservativeComparison}
-\begin{itemize}
-    \item Take notes from martin hrdlik work - compare the method 
-    \item Key concept/Idea: keep awayat leas double of truning radius
-    \item Show calculation/comparison
-\end{itemize}
-
-\subsection{\secState{W}Potential Field Method Comparison}\label{s:potentialComparison}
-\begin{itemize}
-    \item Take ntoes from martin hrdlik work - compare the methods
-    \item key concept/Idea: Every obstacle have charge proportional to expected mass. our UAS is repelled by this charge, the charges can aslo have static/dinamic energy emulating obstacles/intruders
-    \item method has good performance but do not guarantees the safety like ours
-\end{itemize}
-
-\section{\secState{W}Approach Reusability}\label{s:approachReusability}
-\begin{itemize}
-    \item write introduction, check the content is something is not missing
-\end{itemize}
-\paragraph{UTM Services:} The constrained \emph{UTM functionality} is outlined in (sec. \ref{sec:UASTrafficManagement}) including:
 \begin{enumerate}
-    \item \emph{Future UTM Communication Architecture} (fig. \ref{fig:UTMArchitectureOverview}) as the authority over \emph{airspace segment} (fig. \ref{fig:DAMExample})\cite{gerdes2016dynamic}.
-    
-    \item \emph{Cooperative Conflict Resolution Under UTM Supervision} (fig. \ref{fig:CooperativeConflictResolutionUTM}) designed as mild/feasible directives (commands) with \emph{constant supervision}.
-    
-    \item \emph{Rules of the Air Enforcement} (sec. \ref{sec:handlingHeadOnApproach}, \ref{sec:handlingConvergingManuever}, \ref{sec:handlingOvertakeManuever}) including designs of \emph{Position Notification} (sec. \ref{sec:positionNotification}) and \emph{Collision Case Structure/Calculation} (sec. \ref{sec:collisionCase}).
-    
-    \item \emph{Divergence/Convergence Waypoints} concept is showcased in \emph{Overtake Rule} (rule \ref{tab:ruleOvertakeDefinition}). 
-    
-    \item \emph{Weather Avoidance} (sec. \ref{sec:weatherCase}) is using similar concept to \emph{Collision Case}: \emph{Weather Case}. The information are provided by \emph{Local Airspace Authority}.
-    
+    \item \emph{Building Avoidance} (sec. \ref{s:testBuildingAvoidance}) covers \emph{static obstacles} explicitly and \emph{map obstacles, hard constraints, ground avoidance} implicitly.
+    \item \emph{Slalom} (sec. \ref{s:testSlalom}) covers \emph{open space navigation capabilities}, showing the determinism of the \emph{avoidance loop run}, in addition to \emph{building avoidance}.
+    \item \emph{Maze} (sec. \ref{s:testMaze}) covers \emph{closed space navigation capabilities}, showing the higher level navigation properties of primitive \emph{right-side} 2D maze solver. The main point is to show possibility to enrich the \emph{Navigation loop algorithm} (fig. \ref{fig:missionControlRunActivityDiagram}).
+    \item \emph{Storm} (sec. \ref{s:testStorm}) covers \emph{hard moving constraints avoidance} explicitly and \emph{hard static constraints}, \emph{soft static constraints}, \emph{soft moving constraints} implicitly.
+    \item \emph{Emergency converging} scenario (sec. \ref{s:testEmergencyConverging}) covers \emph{non cooperative intruder with right of the way} avoidance capability.
+    \item \emph{Emergency head on} scenario covers (sec. \ref{s:testEmergencyHeadOn}) \emph{non cooperative intruder without right of the way} avoidance capability
+    \item \emph{Emergency mixed} scenario (sec. \ref{s:testEmergencyMixed}) covers \emph{multiple intruders with/without right of the way} avoidance capability.
 \end{enumerate}
 
-\paragraph{Emergency Avoidance Functionality:}  The standard framework implementation (fig. \ref{fig:missionControlRunActivityDiagram}) can handle the situations given in non-cooperative test cases (sec. \ref{s:noncooperativeTestCases}). The list of threats is given by (tab. \ref{tab:uncontrolledAirspaceViolations}). 
-
-\paragraph{Event Based Avoidance Functionality:} The standard framework implementation (fig. \ref{fig:missionControlRunActivityDiagram}) with active $C2$ link and rules setup (fig. \ref{fig:RuleEngineInstanceLevels}) can handle the situations given in cooperative test cases (\ref{s:cooperativeTestCases}). The list of threats is given by (tab. \ref{tab:controlledAirspaceViolations}). The \emph{Avoidance Mode Concept} enables to switch between \emph{Event Based Avoidance} (Navigation) and \emph{Emergency Avoidance.}
-\begin{note}
-    The emergency Avoidance Functionality is included in \emph{Event Based Avoidance} (Navigation) mode.
-    The prioritization of \emph{threats} may differ (tab. \ref{tab:controlledAirspaceViolations}).
-\end{note}
-
-\paragraph{Reusability for More Complex Systems:} The framework (fig. \ref{fig:avoidanceConcept}) with implemented rule engine (fig. \ref{fig:RuleEngineBasicArchitecture}) can be used on \emph{any system}, with appropriate \emph{Movement automaton} (sec. \ref{s:segmentedMovementAutomaton}) enabling \emph{wave-front} propagation (alg. \ref{alg:Wavefront Propagation}) for reach set estimation. Following artifacts needs to be delivered for concept reuse:
+\paragraph{Event Based Avoidance Coverage:} Test cases covers \emph{well clear breach prevention}, \emph{situation based avoidance}, and \emph{rules of the air enforcement}. Coverage of \emph{near miss situations}, \emph{clash incidents} is given implicitly by \emph{safety} and \emph{body} margins (tab. \ref{tab:controlledAirspaceViolations}).
 
 \begin{enumerate}
-    \item The \emph{Movement Automaton} is used to generate \emph{thick series of waypoints} which guarantees desired degree of safety.
+    \item \emph{Rule based converging} (sec. \ref{s:testRuleConverging}) covers \emph{well clear breach} and \emph{converging rule of the air}, showing determinism and \emph{UTM resolution execution}.
     
-    \item The \emph{complex UAS system} is following the \emph{reference trajectory} (sec. \ref{s:referenceTrajectoryGenerator}).
+    \item \emph{Rule based head on} (sec. \ref{s:testRuleHeadOn}) covers \emph{well clear breach} and \emph{head on rule of the air}, showing determinism and \emph{UTM resolution execution}.
     
-    \item The \emph{Sensor Fusion} (sec. \ref{s:SensorFusionDefinition}) implementation including classification to \emph{Free}, \emph{Occupied}, \emph{Restricted} space type.
+    \item \emph{Rule based mixed head on with converging} (sec. \ref{s:testRuleMixed}) covers \emph{well clear breach} and \emph{head on and converging rules of the air}. The main focus is on \emph{virtual roundabout} concept, when multiple collision cases are clustered into one avoidance maneuver. 
     
-    \item The \emph{sensor field} supporting detection of threats. There should be at least one sensor with capability of feeding \emph{Avoidance Grid}. Our implementation was based on LiDAR/ADS-B feeds.
+    \item \emph{Rule based overtake} (sec. \ref{s:testRuleOvertake}) covers \emph{well clear breach} during \emph{overtake} by faster UAS.
+\end{enumerate}
+
+
+\subsection{\secState{R} Hierarchical Decision Making}\label{s:conclusionAvoidanceNavigationRun}
+\noindent The key feature of approach is hierarchical decision making. The hierarchy is introduced not only to threat prioritization, but also to time sequence of the decisions. The framework scheme (fig. \ref{fig:AvoidanceFrameworkConceptNew}) shows that situational assessment in form of \emph{data fusion} is done in (sec. \ref{s:sensorFusion}). The trajectory selection process is separated from final avoidance strategy pick-up process. The decision making separation is done like follows:
+
+\begin{itemize}
+    \item[$\to$] \emph{Avoidance Run} (sec. \ref{s:aviudabceGridRun}) - for one specific data set, for fixed time, for fixed goal find cheapest trajectory which is safe (reachable).
     
-    \item The \emph{Information Sources} supporting the online/offline threat processing. This one is completely optional.
+    \item[$\to$] \emph{Navigation Run} (sec. \ref{s:missionControlRun}) - for multiple data sets (threat hierarchy), for fixed time, for context depending goal try to find existing solution as a safe trajectory. Select trajectory breaking least restrictions from candidates.
+\end{itemize}
+
+The decision making process on threath assessment level (fig. \ref{fig:missionControlRunActivityDiagram}) is configuration of threat type application in 7\textsuperscript{th}-10\textsuperscript{th} step. The idea is that UAS:
+\begin{enumerate}
+    \item must avoid any \emph{static obstacles} (sec. \ref{s:detectedObstacles}),
+    
+    \item can skip \emph{intruders} (sec. \ref{s:intruders}) if there is no other options
+    
+    \item can enter into \emph{hard constraints} (sec. \ref{s:virtualConstraints}, \ref{s:MovingVirtualConstraints}) area if its necessary,
+    
+    \item can enter into \emph{soft constraints} (sec. \ref{s:virtualConstraints}, \ref{s:MovingVirtualConstraints}) area if its necessary.
 \end{enumerate}
 
 \begin{note}
-    \emph{On UTM integration:} The future UTM system will not giving the extreme commands, the directives are more like constraints, therefore our system can provide the guidance and constraint evaluation
+    The \emph{implementation} of \emph{soft/hard constraints} and their evaluation process is same in \emph{avoidance run}, the only difference is when they are applied by \emph{navigation run}.
 \end{note}
-
-\begin{note}
-    \emph{On Safety Margin:} The disparity between real flown trajectory (nonlinear dynamics) and planned trajectory (Movement Automaton) needs to be accounted into \emph{Safety Margin}.
-\end{note}
-
-\paragraph{Reach Set Approximations:} The \emph{wave-front} approach (alg. \ref{alg:Wavefront Propagation}) can be used with \emph{Constrained expansion function} (sec. \ref{s:constrainedTrajectoryExpansion}) to create own \emph{Reach set Approximation Method}. Existing  reach set approximation methods are always following a different goal, they can be reused for other tasks (perf. \ref{sec:reducedReachSetPerformance}):
-
-\begin{enumerate}
-    \item \emph{Chaotic} (def. \ref{s:chaoticReachSet}) - high space coverage, ideal for unpredictable and complex avoidance maneuvers.
     
-    \item \emph{Harmonic} (def. \ref{s:harmonicReachSet}) - smooth trajectories, medium space coverage, ideal for navigation maneuvers.
-    \item \emph{Combined} (def. \ref{s:combinedReachSet}) - combination of the \emph{harmonic} and 
-    
-    \emph{chaotic} approximations, the cost function defines preferred trajectories. The procedure is reusable for any reach set approximation types ($2^+$) combination.
-    
-    \item \emph{ACAS-X Like} (def. \ref{s:acasReachSet}) - following \emph{TCAS/ACAS separation modes}, can be used as alternative for \emph{controlled avoidance} and \emph{navigation}.
-\end{enumerate}
+\subsection{\secState{R}Use of Developed Reach Set Approximations}\label{s:conclusionReachSet}
 
+\noindent The reach set approximation (sec. \ref{\secState{R}}) represents a set of  \emph{maneuvering} strategies (avoidance/movement) which can be used in different context. The properties of the trajectories are given based on \emph{constrained expansion} (sec. \ref{s:constrainedTrajectoryExpansion}) and performance parameters priority (sec. \ref{s:ReachSetPerformanceCriteria}).
 
-\section{\secState{W}Lessons Learned}\label{s:lessonsLearned}
-What can be done differently
+The conditions and priorities are changing with the operational environment, to successful integration into nonsegregated airspace is is necessary to reflect this.  For this purpose the multiple reach set approximation approaches were developed. The performance tests and longer summary can be found in (sec. \ref{}). The short summary of each reach set approximation method is given like follow:
+
 \begin{itemize}
-	\item planar/euc grid: cube cells vs planar cells:
-	\begin{itemize}
-	    \item there is good rate - increasing distance from uas, increasing cell volume , decreasing importance
-	    \item the linear cell count growth with increasing distance, covering more space vs quadratic cell count in euclidiean
-	\end{itemize}
-	
-	\item Intruder uncertainity model ideas:
-	\begin{itemize}
-	    \item intruder as line/curve ontersection
-	    \item intruder as movement automaton simulated trajectory
-	    \item intruder well clear implementation as rule - potential fields
-	\end{itemize}
-	
-	\item Probabilistic vs rating approach:
-	\begin{itemize}
-	    \item Probablistic approach - too formal
-	    \item Deterministic approach - true/false - too constrained
-	    \item rating +  post deterministic: 
-	    \begin{itemize}
-	        \item freedom of probablilstic
-	        \item regulation and business accomodation/introduction
-	    \end{itemize}
-	    \item Ratings reflects probabilities, they share basic mechanisms
-	    \item man made rules incorporation - some things are automatic no go, even if probabilistic approach says its "safe"
-	    \item Situation assessment trough tresholding
-	\end{itemize}
-\end{itemize}
-
-\section{\secState{W}Future Work}\label{s:futureWork}
-\begin{enumerate}
-	\item Adversarial avoidance
-	\begin{itemize}
-	    \item further implementation of game theory
-	    \item pursuer reach set u(t)-v(t) as input
-	    \item solving problems from 7.6.2
-	\end{itemize}
-	
-	\item Real system implementation:
-	\begin{itemize}
-	    \item future implementation in Ground station
-	    \item future implementation onboard
-	    \item what should be put into OS/Cloud
-	    \item use LSTS architecture
-	\end{itemize}
-\end{enumerate}
-
-
-
-
-
-
-
-
+    \item[$\to$] \emph{Chaotic reach set approximation} (sec. \ref{s:chaoticReachSet}) - contains a lot of \emph{curved trajectories} with high space coverage ratio, used for \emph{emergency reactive avoidance} in non-controlled/controlled airspace, \emph{last resort reach set}.
     
+    \item[$\to$] \emph{Harmonic reach set approximation} (sec. \ref{s:harmonicReachSet}) -  contains a lot of \emph{straight} trajectories with low space coverage ratio, used for navigation in \emph{non-controller airspace}.
+    
+    \item[$\to$] \emph{Combined reach set approximation} (sec. \ref{s:combinedReachSet}) - the reach set approximation is represented as a tree, there is a possibility to combine two or more reach sets with same initial state, the outcome of such merge is a new reach state with different properties.
+    
+    \item[$\to$] \emph{ACAS-like reach set approximation} (sec. \ref{s:acasReachSet}) - contains \emph{mandatory separations} (depending on aircraft type), has low trajectory count and low coverage ratio, it emulates ACAS maneuver table in reach set data structure, used for navigation and avoidance in ATC controlled airspace.
+\end{itemize}
 
 
