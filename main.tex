@@ -31,6 +31,7 @@
 \usepackage{graphicx}       
 \usepackage{psfrag}         
 \usepackage{fancyvrb}    
+\usepackage{ifdraft}
 \usepackage{float}
 \usepackage{ltablex}
 \usepackage[square,sort,comma,numbers]{natbib}        
@@ -128,7 +129,9 @@
 
 \newcommand{\pulrad}[1]{\raisebox{1.5ex}[0pt]{#1}}
 \newcommand{\mc}[1]{\multicolumn{1}{c}{#1}}
-
+\newcommand{\secState}[1]{
+	\ifdraft{(#1) }{}
+}
 \begin{document}
 \include{body}
 \bibliography{thesis}
